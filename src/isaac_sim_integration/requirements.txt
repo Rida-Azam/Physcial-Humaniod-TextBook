@@ -1,0 +1,33 @@
+# Isaac Sim Integration Requirements
+
+# Core scientific libraries
+numpy>=1.21.0
+scipy>=1.7.0
+pandas>=1.3.0
+matplotlib>=3.4.0
+
+# Computer vision and image processing
+opencv-python>=4.5.0
+Pillow>=8.3.0
+transforms3d>=0.4.1
+
+# Deep learning frameworks (for sensor processing)
+torch>=1.12.0
+torchvision>=0.13.0
+transformers>=4.21.0
+
+# ROS 2 interface (already handled by ROS dependencies)
+# These are listed for reference if installing outside ROS environment
+rclpy>=3.0.0
+
+# Isaac Sim interface (when available)
+# These would be available when Isaac Sim is installed
+# omni.isaac.core
+# omni.isaac.kit
+# carb
+
+# Additional utilities
+pyquaternion>=0.9.9
+pyyaml>=5.4.0
+requests>=2.25.0
+tqdm>=4.62.0

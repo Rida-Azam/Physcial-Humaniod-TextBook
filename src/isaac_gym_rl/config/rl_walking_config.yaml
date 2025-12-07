@@ -1,0 +1,53 @@
+rl_walking_policy:
+  ros__parameters:
+    # Network architecture
+    state_dim: 48
+    action_dim: 12
+    hidden_dim: 512
+
+    # Training parameters
+    learning_rate: 0.0003
+    gamma: 0.99
+    eps_clip: 0.2
+    k_epochs: 4
+    max_episodes: 1000
+    max_timesteps: 1000
+    update_timestep: 2000
+    log_interval: 20
+
+    # Robot-specific parameters
+    joint_names:
+      - left_hip_roll
+      - left_hip_yaw
+      - left_hip_pitch
+      - left_knee
+      - left_ankle_pitch
+      - left_ankle_roll
+      - right_hip_roll
+      - right_hip_yaw
+      - right_hip_pitch
+      - right_knee
+      - right_ankle_pitch
+      - right_ankle_roll
+
+    # Action scaling
+    action_scale: 0.5
+    position_limits:
+      min: -1.57
+      max: 1.57
+
+    # Reward weights for different components
+    reward_weights:
+      forward_velocity: 1.0
+      balance: 0.5
+      smoothness: 0.1
+      energy_efficiency: 0.1
+
+    # Safety limits
+    max_roll: 0.3
+    max_pitch: 0.3
+    fall_threshold: 0.5
+
+    # Simulation parameters
+    sim_dt: 0.005  # 200 Hz simulation
+    control_dt: 0.05  # 20 Hz control

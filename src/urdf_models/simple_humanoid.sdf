@@ -1,0 +1,595 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="simple_humanoid">
+    <!-- Base link -->
+    <link name="base_link">
+      <pose>0 0 0.8 0 0 0</pose>
+      <inertial>
+        <mass>10.0</mass>
+        <inertia>
+          <ixx>0.2</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.15</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.1</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="base_visual">
+        <geometry>
+          <box>
+            <size>0.2 0.25 0.15</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.7 0.7 0.7 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="base_collision">
+        <geometry>
+          <box>
+            <size>0.2 0.25 0.15</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Torso -->
+    <link name="torso">
+      <pose>0 0 0.875 0 0 0</pose>
+      <inertial>
+        <mass>8.0</mass>
+        <inertia>
+          <ixx>0.4</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.35</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.2</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="torso_visual">
+        <geometry>
+          <box>
+            <size>0.18 0.2 0.5</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 1.0 1</ambient>
+          <diffuse>0.2 0.2 1.0 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="torso_collision">
+        <geometry>
+          <box>
+            <size>0.18 0.2 0.5</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="torso_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>torso</child>
+    </joint>
+
+    <!-- Head -->
+    <link name="head">
+      <pose>0 0 1.375 0 0 0</pose>
+      <inertial>
+        <mass>2.0</mass>
+        <inertia>
+          <ixx>0.02</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.02</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.02</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="head_visual">
+        <geometry>
+          <sphere>
+            <radius>0.1</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0.8 0.6 0.4 1</ambient>
+          <diffuse>0.8 0.6 0.4 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="head_collision">
+        <geometry>
+          <sphere>
+            <radius>0.1</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="neck_joint" type="revolute">
+      <parent>torso</parent>
+      <child>head</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-0.5</lower>
+          <upper>0.5</upper>
+          <effort>10</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Left Arm -->
+    <link name="left_upper_arm">
+      <pose>0.1 0 1.125 0 0 0</pose>
+      <inertial>
+        <mass>1.5</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.01</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.005</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="left_upper_arm_visual">
+        <geometry>
+          <cylinder>
+            <length>0.3</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1.0 0.2 0.2 1</ambient>
+          <diffuse>1.0 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="left_upper_arm_collision">
+        <geometry>
+          <cylinder>
+            <length>0.3</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_shoulder_joint" type="revolute">
+      <parent>torso</parent>
+      <child>left_upper_arm</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>50</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <link name="left_lower_arm">
+      <pose>0.1 0 0.825 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.006</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.006</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.003</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="left_lower_arm_visual">
+        <geometry>
+          <cylinder>
+            <length>0.24</length>
+            <radius>0.04</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1.0 0.2 0.2 1</ambient>
+          <diffuse>1.0 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="left_lower_arm_collision">
+        <geometry>
+          <cylinder>
+            <length>0.24</length>
+            <radius>0.04</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_elbow_joint" type="revolute">
+      <parent>left_upper_arm</parent>
+      <child>left_lower_arm</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>50</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Right Arm -->
+    <link name="right_upper_arm">
+      <pose>-0.1 0 1.125 0 0 0</pose>
+      <inertial>
+        <mass>1.5</mass>
+        <inertia>
+          <ixx>0.01</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.01</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.005</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="right_upper_arm_visual">
+        <geometry>
+          <cylinder>
+            <length>0.3</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1.0 0.2 0.2 1</ambient>
+          <diffuse>1.0 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="right_upper_arm_collision">
+        <geometry>
+          <cylinder>
+            <length>0.3</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_shoulder_joint" type="revolute">
+      <parent>torso</parent>
+      <child>right_upper_arm</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>50</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <link name="right_lower_arm">
+      <pose>-0.1 0 0.825 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.006</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.006</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.003</izz>
+        </inertial>
+      </inertial>
+
+      <visual name="right_lower_arm_visual">
+        <geometry>
+          <cylinder>
+            <length>0.24</length>
+            <radius>0.04</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1.0 0.2 0.2 1</ambient>
+          <diffuse>1.0 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="right_lower_arm_collision">
+        <geometry>
+          <cylinder>
+            <length>0.24</length>
+            <radius>0.04</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_elbow_joint" type="revolute">
+      <parent>right_upper_arm</parent>
+      <child>right_lower_arm</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>50</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Left Leg -->
+    <link name="left_thigh">
+      <pose>0.07 0 0.725 0 0 0</pose>
+      <inertial>
+        <mass>3.0</mass>
+        <inertia>
+          <ixx>0.04</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.04</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.01</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="left_thigh_visual">
+        <geometry>
+          <cylinder>
+            <length>0.4</length>
+            <radius>0.06</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 1.0 0.2 1</ambient>
+          <diffuse>0.2 1.0 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="left_thigh_collision">
+        <geometry>
+          <cylinder>
+            <length>0.4</length>
+            <radius>0.06</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_hip_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_thigh</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-0.5</lower>
+          <upper>0.5</upper>
+          <effort>100</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <link name="left_shin">
+      <pose>0.07 0 0.325 0 0 0</pose>
+      <inertial>
+        <mass>2.0</mass>
+        <inertia>
+          <ixx>0.025</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.025</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.008</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="left_shin_visual">
+        <geometry>
+          <cylinder>
+            <length>0.36</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 1.0 0.2 1</ambient>
+          <diffuse>0.2 1.0 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="left_shin_collision">
+        <geometry>
+          <cylinder>
+            <length>0.36</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_knee_joint" type="revolute">
+      <parent>left_thigh</parent>
+      <child>left_shin</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>1.57</upper>
+          <effort>100</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Right Leg -->
+    <link name="right_thigh">
+      <pose>-0.07 0 0.725 0 0 0</pose>
+      <inertial>
+        <mass>3.0</mass>
+        <inertia>
+          <ixx>0.04</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.04</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.01</izz>
+        </inertia>
+      </inertial>
+
+      <visual name="right_thigh_visual">
+        <geometry>
+          <cylinder>
+            <length>0.4</length>
+            <radius>0.06</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 1.0 0.2 1</ambient>
+          <diffuse>0.2 1.0 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="right_thigh_collision">
+        <geometry>
+          <cylinder>
+            <length>0.4</length>
+            <radius>0.06</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_hip_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_thigh</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-0.5</lower>
+          <upper>0.5</upper>
+          <effort>100</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <link name="right_shin">
+      <pose>-0.07 0 0.325 0 0 0</pose>
+      <inertial>
+        <mass>2.0</mass>
+        <inertia>
+          <ixx>0.025</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.025</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.008</izz>
+        </inertial>
+      </inertial>
+
+      <visual name="right_shin_visual">
+        <geometry>
+          <cylinder>
+            <length>0.36</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 1.0 0.2 1</ambient>
+          <diffuse>0.2 1.0 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="right_shin_collision">
+        <geometry>
+          <cylinder>
+            <length>0.36</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_knee_joint" type="revolute">
+      <parent>right_thigh</parent>
+      <child>right_shin</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>1.57</upper>
+          <effort>100</effort>
+          <velocity>2</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Gazebo plugin for ROS control -->
+    <gazebo>
+      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <robotNamespace>/simple_humanoid</robotNamespace>
+      </plugin>
+    </gazebo>
+
+    <!-- Gazebo material properties -->
+    <gazebo reference="base_link">
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <gazebo reference="torso">
+      <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <gazebo reference="head">
+      <material>Gazebo/Yellow</material>
+    </gazebo>
+
+    <gazebo reference="left_upper_arm">
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+    <gazebo reference="left_lower_arm">
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+    <gazebo reference="right_upper_arm">
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+    <gazebo reference="right_lower_arm">
+      <material>Gazebo/Red</material>
+    </gazebo>
+
+    <gazebo reference="left_thigh">
+      <material>Gazebo/Green</material>
+    </gazebo>
+
+    <gazebo reference="left_shin">
+      <material>Gazebo/Green</material>
+    </gazebo>
+
+    <gazebo reference="right_thigh">
+      <material>Gazebo/Green</material>
+    </gazebo>
+
+    <gazebo reference="right_shin">
+      <material>Gazebo/Green</material>
+    </gazebo>
+  </model>
+</sdf>

@@ -1,0 +1,73 @@
+{
+  "trajectory_id": "traj_0468",
+  "images": [
+    "image_010.jpg",
+    "image_011.jpg",
+    "image_012.jpg",
+    "image_013.jpg",
+    "image_014.jpg",
+    "image_015.jpg",
+    "image_016.jpg",
+    "image_017.jpg",
+    "image_018.jpg",
+    "image_019.jpg",
+    "image_020.jpg",
+    "image_021.jpg",
+    "image_022.jpg",
+    "image_023.jpg",
+    "image_024.jpg",
+    "image_025.jpg",
+    "image_026.jpg",
+    "image_027.jpg",
+    "image_028.jpg",
+    "image_029.jpg",
+    "image_030.jpg"
+  ],
+  "commands": [
+    "pick up the red cup",
+    "pick up the red cup",
+    "pick up the red cup"
+  ],
+  "actions": [
+    [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ],
+    [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ],
+    [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ]
+  ],
+  "timestamps": [
+    1765062584.010507,
+    1765062584.010513,
+    1765062584.010515
+  ],
+  "metadata": {
+    "traj_length": 15,
+    "start_time": "2025-12-07T04:09:44.010517",
+    "end_time": "2025-12-07T04:09:44.010527",
+    "primary_command": "pick up the red cup",
+    "robot_type": "humanoid",
+    "environment": "simulated_office"
+  }
+}

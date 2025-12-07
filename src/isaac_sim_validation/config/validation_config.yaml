@@ -1,0 +1,103 @@
+# Isaac Sim Validation Configuration
+
+# Validation thresholds - maximum allowable errors/differences
+validation_thresholds:
+  kinematic_accuracy: 0.02      # 2 cm positional accuracy
+  dynamic_accuracy: 0.05        # 5 cm/s velocity accuracy
+  balance_stability: 0.15       # 0.15 rad CoM deviation
+  locomotion_success: 0.85      # 85% success rate for navigation
+  manipulation_success: 0.80    # 80% success rate for manipulation
+  sim_real_correlation: 0.85    # 85% correlation between sim and real
+
+# Performance targets
+performance_targets:
+  min_fps: 30                   # Minimum frames per second
+  max_physics_time: 0.016       # Maximum physics update time (16ms = 60Hz)
+  max_rendering_time: 0.033     # Maximum rendering time (33ms = 30Hz)
+  max_memory_usage: 85          # Maximum memory usage percentage
+  max_gpu_usage: 90             # Maximum GPU usage percentage
+
+# Physics parameters for validation
+physics_parameters:
+  dt_range: [0.001, 0.01]       # Physics timestep range to test
+  solver_iterations_range: [4, 12]  # Position solver iterations range
+  substeps_range: [1, 16]       # Substep range for accuracy/performance trade-off
+  ccd_threshold: 1e-5           # Continuous collision detection threshold
+
+# Rendering parameters for validation
+rendering_parameters:
+  resolution_scales: [0.5, 0.7, 1.0]  # Different resolution scales to test
+  quality_levels: ["low", "medium", "high"]  # Quality levels to test
+  enable_reflections: [false, true]    # Whether to test with reflections
+  enable_shadows: [true, false]        # Whether to test with shadows
+
+# Test scenarios for validation
+test_scenarios:
+  - name: "basic_locomotion"
+    description: "Simple walking in straight line"
+    duration: 30  # seconds
+    metrics: ["walking_stability", "position_accuracy", "energy_efficiency"]
+
+  - name: "turning_maneuvers"
+    description: "Turning and rotational movements"
+    duration: 20
+    metrics: ["turning_accuracy", "balance_maintenance", "path_deviation"]
+
+  - name: "object_manipulation"
+    description: "Picking up and placing objects"
+    duration: 60
+    metrics: ["grasp_success", "placement_accuracy", "manipulation_smoothness"]
+
+  - name: "terrain_navigation"
+    description: "Navigation over uneven terrain"
+    duration: 45
+    metrics: ["obstacle_clearance", "stability", "navigation_success"]
+
+  - name: "balance_recovery"
+    description: "Recovery from external disturbances"
+    duration: 25
+    metrics: ["recovery_time", "stability_after_impact", "fall_prevention"]
+
+# Data collection settings
+data_collection:
+  sampling_rate: 100            # Hz - frequency of data collection
+  save_interval: 5              # seconds - how often to save data
+  data_types:                   # Types of data to collect
+    - "joint_positions"
+    - "joint_velocities"
+    - "joint_efforts"
+    - "link_poses"
+    - "imu_data"
+    - "force_torque"
+    - "camera_images"
+    - "point_clouds"
+    - "commanded_actions"
+  buffer_size: 10000            # Maximum number of data points to buffer
+
+# Validation report settings
+reporting:
+  format: "pdf"                 # Output format: pdf, html, json
+  include_plots: true           # Include plots in report
+  detailed_analysis: true       # Include detailed statistical analysis
+  comparison_with_baseline: true # Compare with baseline performance
+  export_individual_tests: true # Export results for each test individually
+
+# Logging settings
+logging:
+  level: "INFO"                 # Log level: DEBUG, INFO, WARNING, ERROR
+  file_path: "validation_logs/" # Directory for log files
+  console_output: true          # Output logs to console
+  detailed_timings: true        # Log detailed timing information
+
+# Optimization settings
+optimization:
+  algorithm: "bayesian"         # Optimization algorithm: bayesian, grid_search, random
+  max_evaluations: 50           # Maximum number of parameter evaluations
+  objective_functions:          # Multiple objectives to optimize
+    - "performance"             # Prioritize performance
+    - "accuracy"                # Prioritize accuracy
+    - "balance"                 # Balance performance and accuracy
+  constraints:                  # Constraints for optimization
+    min_fps: 30
+    max_memory: 90
+    max_gpu_usage: 95

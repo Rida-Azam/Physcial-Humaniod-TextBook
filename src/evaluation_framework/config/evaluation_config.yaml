@@ -1,0 +1,135 @@
+# Evaluation Configuration for Physical AI & Humanoid Robotics Textbook
+
+# Evaluation weights and criteria
+evaluation_criteria:
+  content_quality_weight: 0.3          # 30% weight for content quality
+  implementation_quality_weight: 0.4   # 40% weight for implementation quality
+  pedagogical_effectiveness_weight: 0.3 # 30% weight for pedagogical effectiveness
+
+# Thresholds for different performance levels
+thresholds:
+  minimum_passing_score: 0.6           # 60% minimum to pass
+  good_threshold: 0.7                  # 70% for good rating
+  excellent_threshold: 0.9             # 90% for excellent rating
+
+# Content quality evaluation parameters
+content_quality:
+  completeness:
+    minimum_chapters_per_module: 3
+    required_topics_coverage: 0.8      # 80% of required topics should be covered
+    learning_objectives_required: true
+
+  accuracy:
+    citation_requirements: 3           # Minimum citations per chapter
+    technical_accuracy_threshold: 0.9  # 90% technical accuracy required
+    peer_reviewed_sources_ratio: 0.5   # 50% of sources should be peer-reviewed
+
+  readability:
+    flesch_kincaid_grade_level: [10, 12] # Target grade level (10-12)
+    hemingway_readability_score: 8       # Target Hemingway score
+    maximum_sentence_length: 25          # Max words per sentence
+
+# Implementation quality evaluation parameters
+implementation_quality:
+  code_quality:
+    documentation_coverage: 0.8         # 80% of functions/classes documented
+    code_style_compliance: 0.9          # 90% style compliance
+    error_handling_coverage: 0.7        # 70% of functions with error handling
+
+  ros_integration:
+    package_configuration_required: true
+    launch_files_required: true
+    configuration_files_required: true
+    proper_dependency_management: true
+
+  simulation:
+    gazebo_integration_verified: true
+    isaac_sim_integration_verified: true
+    urdf_models_validated: true
+    physics_accuracy_measured: true
+
+# Pedagogical effectiveness evaluation parameters
+pedagogical_effectiveness:
+  learning_progression:
+    progressive_difficulty_required: true
+    prerequisite_coverage: 0.9          # 90% of prerequisites should be covered
+    concept_building_flow: true
+
+  assessment:
+    exercise_variety_score: 0.7         # 70% variety in exercise types
+    hands_on_activity_required: true
+    assessment_alignment_with_objectives: 0.8  # 80% alignment required
+
+  engagement:
+    interactive_elements_required: true
+    multimedia_integration_score: 0.6   # 60% of chapters should have multimedia
+    real_world_connection_score: 0.8    # 80% of content connected to real world
+
+# Output settings
+output_settings:
+  output_directory: "evaluation_reports"
+  report_format: "json"                 # Options: json, yaml, md
+  include_detailed_analysis: true
+  include_visualizations: true
+  include_statistics_summary: true
+  generate_pdf_report: false            # Requires additional dependencies
+  detailed_component_analysis: true
+
+# Performance and resource settings
+performance:
+  max_workers: 4                        # Number of parallel evaluation workers
+  memory_limit_mb: 1024                 # Memory limit for evaluation processes
+  timeout_per_component: 300            # Timeout in seconds per evaluation component
+  cache_intermediate_results: true      # Cache results to speed up re-evaluation
+
+# Logging settings
+logging:
+  level: "INFO"                         # Options: DEBUG, INFO, WARNING, ERROR
+  file_output: true
+  console_output: true
+  log_file_path: "evaluation_logs/evaluation.log"
+  detailed_component_logs: true
+
+# Module-specific settings
+module_settings:
+  module1:  # Introduction to Physical AI & Humanoid Robotics
+    chapters_expected: 3
+    ros_workspaces_required: 15
+    urdf_models_required: 1
+    simulation_environments_required: 2
+
+  module2:  # The Digital Twin - Simulation
+    chapters_expected: 3
+    gazebo_integration_required: true
+    isaac_sim_integration_required: true
+    simulation_scenarios_required: 5
+
+  module3:  # Vision-Language-Action Models for Humanoid Control
+    chapters_expected: 3
+    vla_model_implementation: true
+    navigation_stack_required: true
+    perception_pipeline_required: true
+    rl_policy_implementation: true
+
+  module4:  # Capstone Project - Autonomous Humanoid from Spoken Command
+    chapters_expected: 3
+    end_to_end_integration_required: true
+    pretrained_models_required: true
+    dataset_generation_required: true
+    evaluation_rubric_required: true
+
+# Validation settings
+validation:
+  validate_urdf_models: true
+  validate_ros_packages: true
+  check_code_runnability: true
+  verify_external_links: false          # May require internet access
+  validate_citations: true
+  check_license_compliance: true
+
+# Reporting thresholds
+reporting_thresholds:
+  minimum_components_evaluated: 0.8     # 80% of components should be evaluated
+  maximum_missing_documentation: 0.2    # Max 20% of components without docs
+  minimum_test_coverage: 0.7            # 70% test coverage for code components
+  maximum_security_issues: 0            # No security issues allowed

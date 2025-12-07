@@ -1,0 +1,29 @@
+{
+  "id": "module2/chapter6",
+  "title": "Simulation Fundamentals – Gazebo Harmonic & Physics Engines",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module2/chapter6.mdx",
+  "sourceDirName": "module2",
+  "slug": "/module2/chapter6",
+  "permalink": "/physical-ai-textbook/docs/module2/chapter6",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module2/chapter6.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "chapter6",
+    "sidebar_position": 1,
+    "title": "Simulation Fundamentals – Gazebo Harmonic & Physics Engines"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "URDF & Robot Description Mastery",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter5"
+  },
+  "next": {
+    "title": "NVIDIA Isaac Sim – The New Standard for Humanoid Training",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter7"
+  }
+}

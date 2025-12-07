@@ -1,0 +1,28 @@
+{
+  "id": "module1/chapter5",
+  "title": "URDF & Robot Description Mastery",
+  "description": "Overview",
+  "source": "@site/docs/module1/chapter5.mdx",
+  "sourceDirName": "module1",
+  "slug": "/module1/chapter5",
+  "permalink": "/physical-ai-textbook/docs/module1/chapter5",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module1/chapter5.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "id": "chapter5",
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Building Real ROS 2 Packages in Python (rclpy)",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter4"
+  },
+  "next": {
+    "title": "Simulation Fundamentals – Gazebo Harmonic & Physics Engines",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter6"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "review_process",
+  "title": "Review Process for Physical AI & Humanoid Robotics Textbook",
+  "description": "Overview",
+  "source": "@site/docs/review_process.md",
+  "sourceDirName": ".",
+  "slug": "/review_process",
+  "permalink": "/physical-ai-textbook/docs/review_process",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/review_process.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Citation Workflow Guide",
+    "permalink": "/physical-ai-textbook/docs/citation_guide"
+  }
+}

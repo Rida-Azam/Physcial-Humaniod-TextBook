@@ -1,0 +1,133 @@
+# Isaac Sim Integration Configuration
+
+# General settings
+general:
+  headless: false                    # Run without GUI
+  physics_dt: 0.001                 # Physics timestep (seconds)
+  rendering_dt: 0.016667            # Rendering timestep (~60Hz, seconds)
+  stage_units_in_meters: 1.0        # Stage units in meters
+  enable_scene_query_support: true  # Enable raycasting and other scene queries
+
+# Physics settings
+physics:
+  solver_type: "TGS"                # Solver type: "TGS" or "PGS"
+  position_iterations: 8            # Position solver iterations
+  velocity_iterations: 4            # Velocity solver iterations
+  max_substeps: 16                  # Maximum substeps per simulation step
+  adaptivity_threshold: 0.1         # Threshold for adaptive substepping
+  sleep_threshold: 0.005            # Sleep threshold for inactive bodies
+  stabilization_threshold: 0.01     # Stabilization threshold
+  enable_ccd: false                 # Enable continuous collision detection
+  ccd_threshold: 1e-5               # CCD activation threshold
+  max_depenetration_velocity: 100.0 # Maximum penetration recovery velocity
+
+# Rendering settings
+rendering:
+  resolution:
+    width: 1280                     # Window width in pixels
+    height: 720                     # Window height in pixels
+  quality_level: "high"             # Quality level: "low", "medium", "high", "ultra"
+  enable_shadows: true              # Enable shadow rendering
+  enable_reflections: false         # Enable reflection rendering
+  enable_global_illumination: false # Enable global illumination
+  anti_aliasing: "fxaa"             # Anti-aliasing: "fxaa", "taa", "off"
+  texture_resolution: "high"        # Texture resolution: "low", "medium", "high"
+  max_lights: 8                     # Maximum number of lights in scene
+
+# Environment settings
+environment:
+  default_environment: "laboratory" # Default environment to load
+  available_environments:           # List of available environments
+    - "simple"
+    - "office"
+    - "kitchen"
+    - "living_room"
+    - "laboratory"
+    - "outdoor"
+  gravity: [0.0, 0.0, -9.81]        # Gravity vector [x, y, z] in m/s^2
+  ground_plane:
+    visible: true                     # Show ground plane
+    size: 10.0                       # Ground plane size in meters
+    material: "grid"                 # Ground material: "grid", "plain", "checkerboard"
+
+# Robot settings
+robot:
+  default_robot_model: "humanoid_a" # Default robot model to load
+  available_models:                 # Available robot models
+    - "humanoid_a"
+    - "humanoid_b"
+    - "custom_urdf"
+  initial_position: [0.0, 0.0, 1.0] # Initial position [x, y, z] in meters
+  initial_orientation: [0.0, 0.0, 0.0, 1.0] # Initial orientation [x, y, z, w] as quaternion
+  joint_limits:
+    enable: true                     # Enable joint limit enforcement
+    tolerance: 0.01                  # Joint limit tolerance in radians
+
+# Sensor settings
+sensors:
+  imu:
+    enabled: true                    # Enable IMU simulation
+    sample_rate: 100                 # Sample rate in Hz
+    noise:
+      linear_acceleration:
+        density: 0.017               # Noise density (m/s^2)/sqrt(Hz)
+        random_walk: 0.0003          # Random walk (m/s^3)/sqrt(Hz)
+      angular_velocity:
+        density: 0.002               # Noise density (rad/s)/sqrt(Hz)
+        random_walk: 4.0e-6          # Random walk (rad/s^2)/sqrt(Hz)
+      bias:
+        instability: 1.0e-5          # Bias instability (rad/s)/sqrt(Hz)
+
+  camera:
+    enabled: true                    # Enable camera simulation
+    sample_rate: 30                  # Sample rate in Hz
+    resolution: [640, 480]           # Resolution [width, height] in pixels
+    fov: 60                          # Field of view in degrees
+    noise_std: 0.01                  # Noise standard deviation
+    distortion:
+      enabled: true                  # Enable distortion
+      k1: -0.1                       # Radial distortion coefficient
+      k2: 0.02                       # Radial distortion coefficient
+      p1: 0.0                        # Tangential distortion coefficient
+      p2: 0.0                        # Tangential distortion coefficient
+
+  force_torque:
+    enabled: true                    # Enable force/torque sensor simulation
+    sample_rate: 1000                # Sample rate in Hz
+    noise_std: 0.1                   # Noise standard deviation in N/Nm
+    range: [1000.0, 100.0]           # Force range [N], Torque range [Nm]
+
+  lidar:
+    enabled: false                   # Enable LIDAR simulation
+    sample_rate: 10                  # Sample rate in Hz
+    points: 1024                     # Number of points per revolution
+    range: [0.1, 25.0]               # Range [min, max] in meters
+    noise_std: 0.01                  # Noise standard deviation in meters
+
+# Control settings
+control:
+  default_controller: "position"     # Default controller type
+  available_controllers:             # Available controller types
+    - "position"
+    - "velocity"
+    - "effort"
+    - "impedance"
+  command_timeout: 5.0               # Command timeout in seconds
+  max_command_frequency: 100         # Maximum command frequency in Hz
+
+# Performance settings
+performance:
+  max_cpu_usage: 80                  # Maximum CPU usage percentage
+  enable_multithreading: true        # Enable multithreaded simulation
+  physics_threads: 4                 # Number of physics threads
+  rendering_threads: 2               # Number of rendering threads
+  enable_gpu_compute: true           # Enable GPU compute acceleration
+  gpu_device_id: 0                   # GPU device ID to use
+
+# Debug settings
+debug:
+  enable_visualization: true         # Enable debug visualization
+  show_contact_points: false         # Show contact points
+  show_collision_meshes: false       # Show collision meshes
+  enable_profiling: false            # Enable performance profiling
+  log_level: "INFO"                  # Log level: "DEBUG", "INFO", "WARN", "ERROR"

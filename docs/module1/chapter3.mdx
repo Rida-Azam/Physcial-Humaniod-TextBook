@@ -1,0 +1,58 @@
+---
+id: chapter3
+sidebar_position: 3
+title: ROS 2 Architecture Deep Dive
+---
+
+# Chapter 3: ROS 2 Architecture Deep Dive
+
+This chapter provides a comprehensive overview of the Robot Operating System 2 (ROS 2) architecture, focusing on its core concepts: nodes, topics, services, and actions. We will explore how these components facilitate communication and coordination in robotic systems, particularly for humanoid robots.
+
+## Learning Objectives
+
+- Understand the fundamental concepts of ROS 2: nodes, topics, services, and actions.
+- Differentiate between topics (publish/subscribe), services (request/reply), and actions (goal/cancel/feedback/result).
+- Implement basic ROS 2 nodes in Python using `rclpy`.
+- Design communication patterns between ROS 2 nodes for humanoid control.
+
+## 3.1 Nodes, Topics, Services, and Actions
+
+ROS 2 is a middleware framework that enables communication between different processes (nodes) in a robotic system. It provides four primary communication mechanisms:
+
+- **Nodes**: Individual processes that perform computation. Nodes are the basic unit of computation in ROS 2.
+- **Topics**: A publish/subscribe communication pattern for streaming data (e.g., sensor data, actuator commands).
+- **Services**: A request/reply communication pattern for single requests and responses (e.g., changing a robot's mode).
+- **Actions**: A goal-oriented communication pattern for long-running tasks with feedback (e.g., navigating to a location).
+
+```python
+# Example of a simple ROS 2 publisher node (non-interactive for now)
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class MinimalPublisher(Node):
+
+    def __init__(self):
+        super().__init__('minimal_publisher')
+        self.publisher_ = self.create_publisher(String, 'topic', 10)
+        timer_period = 0.5  # seconds
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.i = 0
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = 'Hello World: %d' % self.i
+        self.publisher_.publish(msg)
+        self.get_logger().info('Publishing: "%s"' % msg.data)
+        self.i += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    minimal_publisher = MinimalPublisher()
+    rclpy.spin(minimal_publisher)
+    minimal_publisher.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```

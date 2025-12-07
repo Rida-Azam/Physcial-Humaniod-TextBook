@@ -1,0 +1,24 @@
+{
+  "id": "final_review/fact_check_report",
+  "title": "Fact-Check Report for Physical AI & Humanoid Robotics Textbook",
+  "description": "Executive Summary",
+  "source": "@site/docs/final_review/fact_check_report.md",
+  "sourceDirName": "final_review",
+  "slug": "/final_review/fact_check_report",
+  "permalink": "/physical-ai-textbook/docs/final_review/fact_check_report",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/final_review/fact_check_report.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Plagiarism and Fact-Check Report",
+    "permalink": "/physical-ai-textbook/docs/final_review/plagiarism_check_report"
+  },
+  "next": {
+    "title": "Final Review Process Documentation",
+    "permalink": "/physical-ai-textbook/docs/final_review/final_review_process"
+  }
+}

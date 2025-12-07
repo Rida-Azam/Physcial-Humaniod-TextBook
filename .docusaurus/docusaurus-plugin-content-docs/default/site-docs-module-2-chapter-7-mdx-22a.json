@@ -1,0 +1,29 @@
+{
+  "id": "module2/chapter7",
+  "title": "NVIDIA Isaac Sim – The New Standard for Humanoid Training",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module2/chapter7.mdx",
+  "sourceDirName": "module2",
+  "slug": "/module2/chapter7",
+  "permalink": "/physical-ai-textbook/docs/module2/chapter7",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module2/chapter7.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "chapter7",
+    "sidebar_position": 2,
+    "title": "NVIDIA Isaac Sim – The New Standard for Humanoid Training"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Simulation Fundamentals – Gazebo Harmonic & Physics Engines",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter6"
+  },
+  "next": {
+    "title": "Building High-Fidelity Environments & Sensor Simulation",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter8"
+  }
+}

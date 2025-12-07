@@ -1,0 +1,29 @@
+{
+  "id": "module4/chapter15",
+  "title": "Capstone Project – Autonomous Humanoid from Spoken Command",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module4/chapter15.mdx",
+  "sourceDirName": "module4",
+  "slug": "/module4/chapter15",
+  "permalink": "/physical-ai-textbook/docs/module4/chapter15",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module4/chapter15.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "chapter15",
+    "sidebar_position": 3,
+    "title": "Capstone Project – Autonomous Humanoid from Spoken Command"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "From Voice → Plan → Action",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter14"
+  },
+  "next": {
+    "title": "Physical AI & Humanoid Robotics Textbook - Project Summary",
+    "permalink": "/physical-ai-textbook/docs/final_review/project_summary"
+  }
+}

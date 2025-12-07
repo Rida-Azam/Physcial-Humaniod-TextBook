@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>sim_to_real_validation</name>
+  <version>0.1.0</version>
+  <description>Sim-to-real transfer validation and evaluation tools for humanoid robotics</description>
+  <maintainer email="maintainer@todo.todo">Maintainer Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <author>Physical AI & Humanoid Robotics Team</author>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</end>
+  <depend>nav_msgs</end>
+  <depend>tf2_ros</end>
+  <depend>tf2_geometry_msgs</end>
+  <depend>cv_bridge</end>
+  <depend>message_filters</end>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

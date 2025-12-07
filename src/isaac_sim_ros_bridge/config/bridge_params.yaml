@@ -1,0 +1,92 @@
+# Isaac Sim ROS Bridge Configuration
+
+isaac_sim_ros_bridge:
+  ros__parameters:
+    # Connection settings
+    connection_timeout: 10.0  # seconds
+    heartbeat_interval: 1.0   # seconds
+    max_reconnection_attempts: 5
+
+    # Publishing rates (Hz)
+    joint_state_publish_rate: 50.0
+    imu_publish_rate: 100.0
+    camera_publish_rate: 30.0
+    odometry_publish_rate: 50.0
+    tf_publish_rate: 100.0
+
+    # Simulation settings
+    physics_dt: 0.001         # Physics timestep (seconds)
+    rendering_dt: 0.016667    # Rendering timestep (~60Hz, seconds)
+
+    # Robot-specific parameters
+    robot:
+      name: "humanoid_robot"
+      urdf_path: "package://humanoid_description/urdf/humanoid.urdf"
+      joint_names: [
+        # Left leg
+        "left_hip_roll", "left_hip_yaw", "left_hip_pitch",
+        "left_knee", "left_ankle_pitch", "left_ankle_roll",
+        # Right leg
+        "right_hip_roll", "right_hip_yaw", "right_hip_pitch",
+        "right_knee", "right_ankle_pitch", "right_ankle_roll",
+        # Torso
+        "torso_pitch", "torso_roll", "torso_yaw",
+        # Left arm
+        "left_shoulder_pitch", "left_shoulder_roll", "left_shoulder_yaw",
+        "left_elbow_pitch", "left_forearm_yaw", "left_wrist_pitch", "left_wrist_yaw",
+        # Right arm
+        "right_shoulder_pitch", "right_shoulder_roll", "right_shoulder_yaw",
+        "right_elbow_pitch", "right_forearm_yaw", "right_wrist_pitch", "right_wrist_yaw"
+      ]
+
+    # Sensor settings
+    sensors:
+      imu:
+        frame_id: "imu_link"
+        noise:
+          linear_acceleration: 0.01
+          angular_velocity: 0.001
+          orientation: 0.001
+
+      camera:
+        frame_id: "camera_rgb_optical_frame"
+        width: 640
+        height: 480
+        fov: 60.0  # degrees
+        distortion_model: "plumb_bob"
+        distortion_coefficients: [0.0, 0.0, 0.0, 0.0, 0.0]
+
+    # Control settings
+    controllers:
+      joint_state_controller:
+        type: "joint_state_controller/JointStateController"
+        publish_rate: 50
+
+      humanoid_controller:
+        type: "position_controllers/JointGroupPositionController"
+        joints: [
+          "left_hip_roll", "left_hip_yaw", "left_hip_pitch",
+          "left_knee", "left_ankle_pitch", "left_ankle_roll",
+          "right_hip_roll", "right_hip_yaw", "right_hip_pitch",
+          "right_knee", "right_ankle_pitch", "right_ankle_roll",
+          "torso_pitch", "torso_roll", "torso_yaw",
+          "left_shoulder_pitch", "left_shoulder_roll", "left_shoulder_yaw",
+          "left_elbow_pitch", "left_forearm_yaw", "left_wrist_pitch", "left_wrist_yaw",
+          "right_shoulder_pitch", "right_shoulder_roll", "right_shoulder_yaw",
+          "right_elbow_pitch", "right_forearm_yaw", "right_wrist_pitch", "right_wrist_yaw"
+        ]
+
+    # Safety settings
+    safety:
+      max_joint_velocity: 5.0  # rad/s
+      max_joint_effort: 100.0  # N*m
+      collision_checking: true
+      emergency_stop_timeout: 0.5  # seconds
+
+    # Performance settings
+    performance:
+      enable_multithreading: true
+      physics_threads: 4
+      rendering_threads: 2
+      max_cpu_usage: 80.0  # percent
+      enable_gpu_compute: true

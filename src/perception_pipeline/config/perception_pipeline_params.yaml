@@ -1,0 +1,42 @@
+perception_pipeline:
+  ros__parameters:
+    # VSLAM parameters
+    vslam:
+      fx: 554.256
+      fy: 554.256
+      cx: 320.5
+      cy: 240.5
+      feature_count: 100
+      quality_level: 0.01
+      min_distance: 10
+      keyframe_translation_threshold: 0.5
+      publish_rate: 20.0
+
+    # Object detection parameters
+    object_detection:
+      confidence_threshold: 0.5
+      nms_threshold: 0.4
+      model_type: "fasterrcnn_resnet50_fpn"
+      enable_gpu: true
+      publish_rate: 10.0
+
+    # Perception fusion parameters
+    perception_fusion:
+      max_tracking_age: 5.0
+      min_detection_confidence: 0.6
+      fusion_publish_rate: 10.0
+      association_threshold: 1.0
+      enable_visualization: true
+
+    # Camera parameters
+    camera:
+      frame_id: "camera_rgb_optical_frame"
+      depth_scale: 0.001  # For depth cameras
+      depth_max: 10.0     # Maximum depth in meters
+
+    # TF frames
+    tf:
+      map_frame: "map"
+      odom_frame: "odom"
+      base_frame: "base_link"
+      camera_frame: "camera_rgb_optical_frame"

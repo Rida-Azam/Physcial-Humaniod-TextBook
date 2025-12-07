@@ -1,0 +1,24 @@
+{
+  "id": "final_review/project_summary",
+  "title": "Physical AI & Humanoid Robotics Textbook - Project Summary",
+  "description": "Executive Summary",
+  "source": "@site/docs/final_review/project_summary.md",
+  "sourceDirName": "final_review",
+  "slug": "/final_review/project_summary",
+  "permalink": "/physical-ai-textbook/docs/final_review/project_summary",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/final_review/project_summary.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Capstone Project – Autonomous Humanoid from Spoken Command",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter15"
+  },
+  "next": {
+    "title": "Plagiarism and Fact-Check Report",
+    "permalink": "/physical-ai-textbook/docs/final_review/plagiarism_check_report"
+  }
+}

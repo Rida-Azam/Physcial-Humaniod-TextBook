@@ -1,0 +1,582 @@
+---
+id: chapter12
+sidebar_position: 3
+title: Dexterous Manipulation & Sim-to-Real Grasp Transfer
+---
+
+# Chapter 12: Dexterous Manipulation & Sim-to-Real Grasp Transfer
+
+## Learning Objectives
+
+- Understand the principles of dexterous manipulation in humanoid robots
+- Analyze different grasp types and their applications
+- Implement sim-to-real transfer techniques for grasp learning
+- Design manipulation controllers for humanoid robots
+- Evaluate grasp success and robustness across simulation and real environments
+
+## 12.1 Introduction to Dexterous Manipulation
+
+Dexterous manipulation refers to the ability of robotic systems to perform complex manipulation tasks with high precision and adaptability. For humanoid robots, dexterous manipulation is essential for performing human-like tasks in unstructured environments.
+
+Key aspects of dexterous manipulation include:
+- **Grasp Planning**: Determining optimal grasp points and configurations
+- **Force Control**: Managing contact forces during manipulation
+- **Tactile Sensing**: Using touch feedback for fine manipulation
+- **Multi-finger Coordination**: Coordinating multiple fingers for complex grasps
+
+## 12.2 Grasp Types and Classification
+
+### 12.2.1 Power Grasps
+
+Power grasps focus on stability and the ability to handle heavy objects. Common power grasps include:
+
+- **Cylindrical Grasp**: Wrapping fingers around cylindrical objects
+- **Spherical Grasp**: Grasping spherical objects with finger pads
+- **Hook Grasp**: Using fingertips to grasp objects with handles
+
+### 12.2.2 Precision Grasps
+
+Precision grasps prioritize fine control and dexterity over strength:
+
+- **Pinch Grasp**: Using thumb and finger tips for precise positioning
+- **Lateral Grasp**: Grasping objects between thumb and index finger side
+- **Tripod Grasp**: Using thumb, index, and middle fingers for fine control
+
+### 12.2.3 Grasp Stability Metrics
+
+Quantifying grasp quality is essential for grasp planning:
+
+```python
+# Example grasp stability evaluation
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+
+def evaluate_grasp_quality(contact_points, contact_forces, object_mass, gravity=9.81):
+    """
+    Evaluate grasp quality based on force closure and stability metrics
+    """
+    # Convert to numpy arrays
+    contacts = np.array(contact_points)
+    forces = np.array(contact_forces)
+
+    # Calculate center of mass of contact points
+    com = np.mean(contacts, axis=0)
+
+    # Calculate grasp matrix
+    # Each contact contributes to the grasp matrix with normal and friction cone
+    grasp_matrix = []
+    for i, (contact, force) in enumerate(zip(contacts, forces)):
+        # Normal vector (assuming force direction is normal)
+        n = force / np.linalg.norm(force)
+
+        # Tangential vectors (for friction cone)
+        t1 = np.cross(n, [1, 0, 0])
+        if np.linalg.norm(t1) < 1e-6:
+            t1 = np.cross(n, [0, 1, 0])
+        t1 = t1 / np.linalg.norm(t1)
+        t2 = np.cross(n, t1)
+        t2 = t2 / np.linalg.norm(t2)
+
+        # Grasp matrix row for this contact
+        # Force components: normal, tangential 1, tangential 2
+        # Moment components: cross product with contact point
+        row1 = np.hstack([n, np.cross(contact - com, n)])
+        row2 = np.hstack([t1, np.cross(contact - com, t1)])
+        row3 = np.hstack([t2, np.cross(contact - com, t2)])
+
+        grasp_matrix.extend([row1, row2, row3])
+
+    grasp_matrix = np.array(grasp_matrix)
+
+    # Calculate grasp quality metric (condition number of grasp matrix)
+    # Lower condition number indicates better force distribution
+    if grasp_matrix.shape[0] >= grasp_matrix.shape[1]:
+        U, s, Vt = np.linalg.svd(grasp_matrix)
+        condition_number = s[0] / s[-1] if s[-1] != 0 else float('inf')
+        quality = 1.0 / condition_number if condition_number != float('inf') else 0.0
+    else:
+        quality = 0.0
+
+    return quality
+
+# Example usage
+contact_points = [
+    [0.1, 0.05, 0.0],
+    [0.1, -0.05, 0.0],
+    [-0.1, 0.0, 0.0]
+]
+
+contact_forces = [
+    [0, 0, 5],  # Normal force
+    [0, 0, 5],  # Normal force
+    [0, 0, 10]  # Normal force
+]
+
+quality = evaluate_grasp_quality(contact_points, contact_forces, object_mass=0.5)
+print(f"Grasp Quality: {quality}")
+```
+
+## 12.3 Simulation Environments for Manipulation
+
+### 12.3.1 Physics Simulation Considerations
+
+Accurate physics simulation is crucial for sim-to-real transfer:
+
+- **Friction Modeling**: Accurate representation of friction coefficients
+- **Contact Dynamics**: Realistic contact force computation
+- **Material Properties**: Proper density, elasticity, and damping
+- **Sensor Simulation**: Realistic noise and latency models
+
+### 12.3.2 Domain Randomization
+
+Domain randomization helps bridge the sim-to-real gap:
+
+```python
+# Example domain randomization for grasp training
+import random
+
+class DomainRandomization:
+    def __init__(self):
+        # Randomization ranges
+        self.friction_range = (0.3, 0.8)
+        self.mass_range = (0.1, 2.0)
+        self.com_offset_range = (-0.01, 0.01)
+        self.visual_noise_range = (0.0, 0.1)
+
+    def randomize_object_properties(self, object_params):
+        """
+        Randomize object properties for domain randomization
+        """
+        randomized_params = object_params.copy()
+
+        # Randomize friction
+        randomized_params['friction'] = random.uniform(*self.friction_range)
+
+        # Randomize mass
+        randomized_params['mass'] = random.uniform(*self.mass_range)
+
+        # Randomize center of mass offset
+        randomized_params['com_offset'] = [
+            random.uniform(*self.com_offset_range),
+            random.uniform(*self.com_offset_range),
+            random.uniform(*self.com_offset_range)
+        ]
+
+        return randomized_params
+
+    def randomize_visual_properties(self, visual_params):
+        """
+        Randomize visual properties for domain randomization
+        """
+        randomized_params = visual_params.copy()
+
+        # Add noise to visual features
+        noise_level = random.uniform(*self.visual_noise_range)
+        randomized_params['texture_noise'] = noise_level
+        randomized_params['lighting_variation'] = noise_level
+
+        return randomized_params
+
+# Example usage in simulation
+domain_rand = DomainRandomization()
+object_params = {
+    'friction': 0.5,
+    'mass': 0.5,
+    'com_offset': [0, 0, 0]
+}
+
+for episode in range(1000):
+    # Randomize object properties each episode
+    randomized_obj = domain_rand.randomize_object_properties(object_params)
+    # Train grasp policy with randomized parameters
+```
+
+## 12.4 Sim-to-Real Transfer Techniques
+
+### 12.4.1 System Identification
+
+System identification helps characterize the differences between simulation and reality:
+
+- **Parameter Estimation**: Identifying physical parameters that differ between sim and real
+- **Dynamics Modeling**: Learning the true dynamics from real-world data
+- **Calibration Procedures**: Adjusting simulation parameters to match real behavior
+
+### 12.4.2 Domain Adaptation
+
+Domain adaptation techniques help transfer learned policies:
+
+```python
+# Example domain adaptation for grasp transfer
+import torch
+import torch.nn as nn
+
+class GraspPolicy(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(GraspPolicy, self).__init__()
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, output_dim)
+        )
+
+    def forward(self, x):
+        return self.network(x)
+
+class DomainDiscriminator(nn.Module):
+    def __init__(self, feature_dim):
+        super(DomainDiscriminator, self).__init__()
+        self.discriminator = nn.Sequential(
+            nn.Linear(feature_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.discriminator(x)
+
+class DomainAdaptationGrasp(nn.Module):
+    def __init__(self, input_dim, output_dim, feature_dim):
+        super(DomainAdaptationGrasp, self).__init__()
+        self.feature_extractor = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, feature_dim),
+            nn.ReLU()
+        )
+        self.policy = nn.Linear(feature_dim, output_dim)
+        self.discriminator = DomainDiscriminator(feature_dim)
+
+    def forward(self, x, domain='sim'):
+        features = self.feature_extractor(x)
+        action = self.policy(features)
+        domain_pred = self.discriminator(features)
+        return action, domain_pred
+
+# Training loop with domain adaptation
+def train_domain_adaptation(sim_loader, real_loader, model, optimizer, epochs=100):
+    criterion = nn.MSELoss()
+    domain_criterion = nn.BCELoss()
+
+    for epoch in range(epochs):
+        for (sim_batch, real_batch) in zip(sim_loader, real_loader):
+            optimizer.zero_grad()
+
+            # Sim data (label as 0)
+            sim_actions, sim_domain = model(sim_batch, domain='sim')
+            sim_domain_loss = domain_criterion(sim_domain, torch.zeros_like(sim_domain))
+
+            # Real data (label as 1)
+            real_actions, real_domain = model(real_batch, domain='real')
+            real_domain_loss = domain_criterion(real_domain, torch.ones_like(real_domain))
+
+            # Domain adaptation loss (try to confuse discriminator)
+            total_domain_loss = sim_domain_loss + real_domain_loss
+            domain_adapt_loss = -total_domain_loss  # Minimize -loss to confuse discriminator
+
+            # Task loss (supervised on real data)
+            task_loss = criterion(real_actions, real_target_actions)  # Assuming we have targets
+
+            total_loss = task_loss + 0.1 * domain_adapt_loss
+            total_loss.backward()
+            optimizer.step()
+```
+
+### 12.4.3 System Dynamics Randomization
+
+Randomizing system dynamics during training improves robustness:
+
+- **Actuator Dynamics**: Varying motor response characteristics
+- **Transmission Effects**: Modeling gear backlash and compliance
+- **Sensor Noise**: Adding realistic sensor noise and delays
+- **Environmental Conditions**: Varying surface properties and lighting
+
+## 12.5 Tactile Sensing for Grasp Control
+
+### 12.5.1 Tactile Sensor Technologies
+
+Modern tactile sensors provide rich haptic feedback:
+
+- **GelSight Sensors**: High-resolution tactile imaging
+- **Optical Tactile Sensors**: Using cameras to detect surface deformation
+- **Piezoelectric Sensors**: Detecting force and vibration
+- **Capacitive Sensors**: Measuring proximity and contact area
+
+### 12.5.2 Tactile Feedback Integration
+
+Integrating tactile feedback into grasp control:
+
+```python
+# Example tactile feedback controller
+import numpy as np
+
+class TactileGraspController:
+    def __init__(self, num_fingers=2):
+        self.num_fingers = num_fingers
+        self.tactile_threshold = 0.1  # Threshold for contact detection
+        self.force_limit = 50.0  # Maximum force before adjustment
+        self.slip_threshold = 0.05  # Threshold for slip detection
+
+    def process_tactile_data(self, tactile_readings):
+        """
+        Process tactile sensor data from multiple fingers
+        tactile_readings: list of [force_x, force_y, force_z, slip_detection] for each finger
+        """
+        contact_status = []
+        forces = []
+        slip_detected = []
+
+        for finger_data in tactile_readings:
+            force_mag = np.linalg.norm(finger_data[:3])
+            contact_status.append(force_mag > self.tactile_threshold)
+            forces.append(force_mag)
+            slip_detected.append(abs(finger_data[3]) > self.slip_threshold)
+
+        return contact_status, forces, slip_detected
+
+    def adjust_grasp(self, tactile_readings, current_forces):
+        """
+        Adjust grasp based on tactile feedback
+        """
+        contact_status, forces, slip_detected = self.process_tactile_data(tactile_readings)
+
+        new_forces = current_forces.copy()
+
+        for i, (contact, force, slip) in enumerate(zip(contact_status, forces, slip_detected)):
+            if slip:
+                # Increase force to prevent slip
+                new_forces[i] = min(new_forces[i] * 1.1, self.force_limit)
+            elif force > self.force_limit:
+                # Decrease force to avoid damage
+                new_forces[i] = max(new_forces[i] * 0.9, self.force_limit * 0.5)
+
+        return new_forces
+
+# Example usage
+tactile_controller = TactileGraspController(num_fingers=2)
+
+# Simulate tactile readings [force_x, force_y, force_z, slip_signal]
+tactile_readings = [
+    [2.0, 0.5, 15.0, 0.01],  # Finger 1
+    [1.8, 0.3, 14.5, 0.02]   # Finger 2
+]
+
+current_forces = [20.0, 20.0]  # Current commanded forces
+new_forces = tactile_controller.adjust_grasp(tactile_readings, current_forces)
+print(f"Adjusted forces: {new_forces}")
+```
+
+## 12.6 Grasp Planning Algorithms
+
+### 12.6.1 Analytical Grasp Planning
+
+Analytical methods compute grasp points based on object geometry:
+
+- **Antipodal Grasps**: Finding pairs of contact points with opposing normals
+- **Geometric Features**: Using object edges, corners, and surfaces
+- **Force Closure Analysis**: Ensuring stable grasp configurations
+
+### 12.6.2 Learning-Based Grasp Planning
+
+Learning approaches leverage data to improve grasp planning:
+
+```python
+# Example learning-based grasp planner
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+
+class LearningBasedGraspPlanner:
+    def __init__(self):
+        self.model = RandomForestRegressor(n_estimators=100)
+        self.is_trained = False
+
+    def extract_features(self, object_point_cloud, grasp_candidate):
+        """
+        Extract features for grasp evaluation
+        """
+        # Simplified feature extraction
+        # In practice, this would include geometric, shape, and spatial features
+        features = []
+
+        # Distance to object center
+        obj_center = np.mean(object_point_cloud, axis=0)
+        grasp_center = grasp_candidate['position']
+        dist_to_center = np.linalg.norm(grasp_center - obj_center)
+        features.append(dist_to_center)
+
+        # Grasp width
+        features.append(grasp_candidate['width'])
+
+        # Surface normal alignment
+        surface_normal = grasp_candidate['normal']
+        approach_direction = grasp_candidate['approach']
+        normal_alignment = abs(np.dot(surface_normal, approach_direction))
+        features.append(normal_alignment)
+
+        return np.array(features)
+
+    def train(self, training_data):
+        """
+        Train the grasp planner with training data
+        training_data: list of (object_point_cloud, grasp_candidate, success_probability)
+        """
+        X = []
+        y = []
+
+        for obj_pc, grasp, success_prob in training_data:
+            features = self.extract_features(obj_pc, grasp)
+            X.append(features)
+            y.append(success_prob)
+
+        X = np.array(X)
+        y = np.array(y)
+
+        self.model.fit(X, y)
+        self.is_trained = True
+
+    def predict_grasp_quality(self, object_point_cloud, grasp_candidate):
+        """
+        Predict the quality of a grasp candidate
+        """
+        if not self.is_trained:
+            raise ValueError("Model must be trained before prediction")
+
+        features = self.extract_features(object_point_cloud, grasp_candidate)
+        quality = self.model.predict([features])[0]
+
+        return max(0.0, min(1.0, quality))  # Clamp to [0, 1]
+
+    def plan_grasp(self, object_point_cloud, grasp_candidates):
+        """
+        Plan the best grasp from a set of candidates
+        """
+        best_grasp = None
+        best_quality = -1.0
+
+        for grasp in grasp_candidates:
+            quality = self.predict_grasp_quality(object_point_cloud, grasp)
+            if quality > best_quality:
+                best_quality = quality
+                best_grasp = grasp
+
+        return best_grasp, best_quality
+
+# Example usage (with simulated data)
+grasp_planner = LearningBasedGraspPlanner()
+
+# Simulated training data (in practice, this would come from real grasping experiments)
+training_data = [
+    (np.random.random((100, 3)), {'position': [0.1, 0.0, 0.0], 'width': 0.05, 'normal': [0, 0, 1], 'approach': [1, 0, 0]}, 0.8),
+    (np.random.random((100, 3)), {'position': [0.05, 0.05, 0.0], 'width': 0.03, 'normal': [0, 0, 1], 'approach': [0, 1, 0]}, 0.6),
+    # ... more training examples
+]
+
+# In practice, you would have more training data
+# grasp_planner.train(training_data)
+```
+
+## 12.7 Implementation Example: Grasp Transfer Pipeline
+
+A complete pipeline for sim-to-real grasp transfer:
+
+```python
+class GraspTransferPipeline:
+    def __init__(self):
+        self.simulation_env = None  # Initialized with simulation environment
+        self.domain_rand = DomainRandomization()
+        self.grasp_planner = LearningBasedGraspPlanner()
+        self.tactile_controller = TactileGraspController()
+        self.quality_evaluator = evaluate_grasp_quality
+
+    def train_in_simulation(self, num_episodes=10000):
+        """
+        Train grasp policy in simulation with domain randomization
+        """
+        for episode in range(num_episodes):
+            # Randomize environment parameters
+            randomized_params = self.domain_rand.randomize_object_properties({})
+
+            # Generate grasp candidates in simulation
+            object_pc = self.get_simulated_point_cloud()
+            grasp_candidates = self.generate_grasp_candidates(object_pc)
+
+            # Evaluate grasps in simulation
+            for grasp in grasp_candidates:
+                success = self.simulate_grasp(grasp, randomized_params)
+                # Store experience for learning
+
+    def transfer_to_real(self, real_object):
+        """
+        Transfer grasp policy to real robot
+        """
+        # Get point cloud of real object
+        object_pc = self.get_real_point_cloud(real_object)
+
+        # Plan grasp using trained policy
+        grasp_candidates = self.generate_grasp_candidates(object_pc)
+        best_grasp, quality = self.grasp_planner.plan_grasp(object_pc, grasp_candidates)
+
+        # Execute grasp with tactile feedback
+        execution_success = self.execute_grasp_with_feedback(best_grasp)
+
+        return execution_success, quality
+
+    def get_simulated_point_cloud(self):
+        """
+        Get point cloud from simulation
+        """
+        # Implementation depends on simulation environment
+        return np.random.random((500, 3))  # Placeholder
+
+    def get_real_point_cloud(self, object):
+        """
+        Get point cloud from real sensor
+        """
+        # Implementation depends on real sensor setup
+        return np.random.random((500, 3))  # Placeholder
+
+    def generate_grasp_candidates(self, point_cloud):
+        """
+        Generate potential grasp candidates
+        """
+        # Implementation of grasp candidate generation
+        candidates = []
+        for i in range(10):  # Generate 10 candidates
+            candidate = {
+                'position': point_cloud[i % len(point_cloud)],
+                'width': np.random.uniform(0.02, 0.08),
+                'normal': np.random.random(3),
+                'approach': np.random.random(3)
+            }
+            candidates.append(candidate)
+        return candidates
+
+    def simulate_grasp(self, grasp, params):
+        """
+        Simulate grasp execution
+        """
+        # Implementation depends on simulation environment
+        return np.random.random() > 0.5  # Placeholder success/failure
+
+    def execute_grasp_with_feedback(self, grasp):
+        """
+        Execute grasp on real robot with tactile feedback
+        """
+        # Implementation depends on real robot
+        return True  # Placeholder
+```
+
+## 12.8 Exercises
+
+1. Implement a simple grasp planner for primitive objects (cubes, cylinders).
+2. Train a grasp policy in simulation and test on real objects.
+3. Compare the performance of analytical vs. learning-based grasp planning.
+4. Design a tactile feedback controller for grasp stabilization.
+
+## 12.9 Chapter Summary
+
+Dexterous manipulation in humanoid robots requires sophisticated grasp planning, force control, and tactile feedback integration. The sim-to-real transfer challenge can be addressed through domain randomization, system identification, and domain adaptation techniques. Successful manipulation requires combining analytical methods with learning-based approaches to achieve robust and adaptive grasping capabilities.

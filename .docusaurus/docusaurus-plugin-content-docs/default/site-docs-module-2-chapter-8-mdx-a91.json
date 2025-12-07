@@ -1,0 +1,29 @@
+{
+  "id": "module2/chapter8",
+  "title": "Building High-Fidelity Environments & Sensor Simulation",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module2/chapter8.mdx",
+  "sourceDirName": "module2",
+  "slug": "/module2/chapter8",
+  "permalink": "/physical-ai-textbook/docs/module2/chapter8",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module2/chapter8.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "chapter8",
+    "sidebar_position": 3,
+    "title": "Building High-Fidelity Environments & Sensor Simulation"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "NVIDIA Isaac Sim – The New Standard for Humanoid Training",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter7"
+  },
+  "next": {
+    "title": "Isaac Sim Integration – Physics, Rendering & Sensor Simulation",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter9"
+  }
+}

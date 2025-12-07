@@ -1,0 +1,28 @@
+{
+  "id": "module1/chapter4",
+  "title": "Building Real ROS 2 Packages in Python (rclpy)",
+  "description": "Overview",
+  "source": "@site/docs/module1/chapter4.mdx",
+  "sourceDirName": "module1",
+  "slug": "/module1/chapter4",
+  "permalink": "/physical-ai-textbook/docs/module1/chapter4",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module1/chapter4.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "id": "chapter4",
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "ROS 2 Architecture Deep Dive",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter3"
+  },
+  "next": {
+    "title": "URDF & Robot Description Mastery",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter5"
+  }
+}

@@ -1,0 +1,28 @@
+<root main_tree_to_execute="MainTree">
+    <BehaviorTree ID="MainTree">
+        <PipelineSequence name="NavigateWithReplanning">
+            <RateController hz="1.0">
+                <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            </RateController>
+            <FollowPath path="{path}" controller_id="FollowPath"/>
+        </PipelineSequence>
+        <ReactiveFallback name="NavigateWRecovery">
+            <PipelineSequence>
+                <GoalUpdated/>
+                <RetryNode num_attempts="3">
+                    <PipelineSequence>
+                        <RateController hz="1.0">
+                            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+                        </RateController>
+                        <FollowPath path="{path}" controller_id="FollowPath"/>
+                    </PipelineSequence>
+                </RetryNode>
+            </PipelineSequence>
+            <ReactiveFallback name="RecoveryFallback">
+                <RecoveryNode recovery_policy="spin"/>
+                <RecoveryNode recovery_policy="backup"/>
+                <RecoveryNode recovery_policy="wait"/>
+            </ReactiveFallback>
+        </ReactiveFallback>
+    </BehaviorTree>
+</root>

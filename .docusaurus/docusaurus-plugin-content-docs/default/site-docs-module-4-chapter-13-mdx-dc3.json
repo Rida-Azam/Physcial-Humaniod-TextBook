@@ -1,0 +1,29 @@
+{
+  "id": "module4/chapter13",
+  "title": "Vision-Language-Action Models",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module4/chapter13.mdx",
+  "sourceDirName": "module4",
+  "slug": "/module4/chapter13",
+  "permalink": "/physical-ai-textbook/docs/module4/chapter13",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module4/chapter13.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "chapter13",
+    "sidebar_position": 1,
+    "title": "Vision-Language-Action Models"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Dexterous Manipulation & Sim-to-Real Grasp Transfer",
+    "permalink": "/physical-ai-textbook/docs/module3/chapter12"
+  },
+  "next": {
+    "title": "From Voice → Plan → Action",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter14"
+  }
+}

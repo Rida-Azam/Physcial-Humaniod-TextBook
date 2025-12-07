@@ -1,0 +1,1503 @@
+---
+id: chapter9
+sidebar_position: 4
+title: Isaac Sim Integration – Physics, Rendering & Sensor Simulation
+---
+
+# Chapter 9: Isaac Sim Integration – Physics, Rendering & Sensor Simulation
+
+## Learning Objectives
+
+By the end of this chapter, students will be able to:
+- Integrate Isaac Sim with ROS 2 for humanoid robot simulation
+- Configure physics parameters for realistic humanoid dynamics
+- Set up high-fidelity rendering for vision-based tasks
+- Implement accurate sensor simulation for humanoid robots
+- Validate simulation results against real-world data
+- Optimize simulation performance for training and deployment
+
+## 9.1 Introduction to Isaac Sim Integration
+
+Isaac Sim provides a comprehensive simulation environment that bridges the gap between virtual development and real-world robotics. For humanoid robots, Isaac Sim offers several key advantages:
+
+- **Photorealistic Rendering**: High-fidelity visual simulation for training vision systems
+- **Physically Accurate Simulation**: Advanced physics engine for realistic robot-environment interactions
+- **Hardware Acceleration**: GPU-accelerated simulation for large-scale training
+- **AI Framework Integration**: Direct integration with NVIDIA's AI tools
+- **ROS 2 Bridge**: Seamless integration with ROS 2 for real-world deployment
+
+### 9.1.1 Isaac Sim Architecture
+
+The Isaac Sim architecture consists of several key components:
+
+- **USD (Universal Scene Description)**: Core data model for representing scenes
+- **PhysX Engine**: NVIDIA's physics simulation engine
+- **Omniverse Kit**: Application framework for 3D simulation
+- **Isaac Extensions**: Robotics-specific extensions for sensing and control
+- **ROS 2 Bridge**: Two-way communication with ROS 2 ecosystem
+
+### 9.1.2 Integration Benefits for Humanoid Robotics
+
+Isaac Sim integration provides specific benefits for humanoid robot development:
+
+- **Complex Dynamics**: Accurate simulation of multi-contact scenarios during walking
+- **High-DOF Control**: Support for robots with many degrees of freedom
+- **Sensor Fusion**: Integration of multiple sensor modalities
+- **Real-time Performance**: High-fidelity simulation at interactive rates
+- **Scalability**: Support for parallel simulation environments
+
+## 9.2 Isaac Sim Setup and Configuration
+
+### 9.2.1 Installation and Prerequisites
+
+To properly set up Isaac Sim for humanoid robotics:
+
+```bash
+# Prerequisites
+# - NVIDIA GPU with CUDA support (RTX series recommended)
+# - Compatible NVIDIA drivers
+# - Ubuntu 20.04 or 22.04
+
+# Download Isaac Sim from NVIDIA Developer website
+wget https://developer.download.nvidia.com/isaac/isaac_sim.isac
+
+# Extract and install
+tar -xf isaac_sim.tar.bz2
+cd isaac_sim
+./install_dependencies.sh
+./run_headless.py --skip-pull
+```
+
+### 9.2.2 Basic Configuration for Humanoid Robots
+
+```python
+# Isaac Sim configuration for humanoid simulation
+import omni
+from omni.isaac.core import World
+from omni.isaac.core.utils.stage import add_reference_to_stage
+from omni.isaac.core.utils.nucleus import get_assets_root_path
+from omni.isaac.core.robots import Robot
+from omni.isaac.core.articulations import Articulation
+
+class IsaacSimHumanoidConfig:
+    """Configuration class for Isaac Sim humanoid simulation"""
+
+    def __init__(self):
+        # Simulation parameters
+        self.simulation_params = {
+            "physics_dt": 1.0/60.0,      # Physics timestep (s)
+            "rendering_dt": 1.0/60.0,    # Rendering timestep (s)
+            "stage_units_in_meters": 1.0, # World scale factor
+            "enable_scene_query_support": True,  # Enable raycasting
+            "default_physics_material": {
+                "static_friction": 0.5,
+                "dynamic_friction": 0.5,
+                "restitution": 0.1
+            }
+        }
+
+        # Physics settings for humanoid locomotion
+        self.physics_settings = {
+            "solver_type": "TGS",        # TGS or PGS
+            "solver_position_iteration_count": 8,
+            "solver_velocity_iteration_count": 4,
+            "sleep_threshold": 0.005,    # Velocity threshold for sleeping
+            "stabilization_threshold": 0.01,  # Position stabilization threshold
+            "enable_ccd": False,         # Continuous collision detection
+            "ccd_threshold": 1e-5,       # CCD activation threshold
+            "max_depenetration_velocity": 100.0  # Max penetration recovery velocity
+        }
+
+        # Rendering settings
+        self.rendering_settings = {
+            "resolution": [1280, 720],   # Render resolution
+            "enable_hydra_texture_streaming": True,
+            "lighting_quality": "high",
+            "shadows": "enabled",
+            "reflections": "realistic",
+            "post_processing": "enabled"
+        }
+
+    def setup_simulation_environment(self):
+        """Set up the simulation environment with humanoid-specific settings"""
+        # Get the timeline interface
+        timeline = omni.timeline.get_timeline_interface()
+
+        # Configure physics settings
+        physics_settings = carb.settings.get_settings()
+        physics_settings.set("/physics/solverType", self.physics_settings["solver_type"])
+        physics_settings.set("/physics/solverPositionIterationCount",
+                            self.physics_settings["solver_position_iteration_count"])
+        physics_settings.set("/physics/solverVelocityIterationCount",
+                            self.physics_settings["solver_velocity_iteration_count"])
+        physics_settings.set("/physics/sleepThreshold",
+                            self.physics_settings["sleep_threshold"])
+        physics_settings.set("/physics/stabilizationThreshold",
+                            self.physics_settings["stabilization_threshold"])
+        physics_settings.set("/physics/enableCCD",
+                            self.physics_settings["enable_ccd"])
+        physics_settings.set("/physics/ccdThreshold",
+                            self.physics_settings["ccd_threshold"])
+        physics_settings.set("/physics/maxDepenetrationVelocity",
+                            self.physics_settings["max_depenetration_velocity"])
+
+        print("Isaac Sim environment configured for humanoid simulation")
+
+    def create_humanoid_world(self):
+        """Create a world configured for humanoid robot simulation"""
+        # Initialize the world with appropriate settings
+        world = World(
+            stage_units_in_meters=self.simulation_params["stage_units_in_meters"],
+            physics_dt=self.simulation_params["physics_dt"],
+            rendering_dt=self.simulation_params["rendering_dt"],
+            sim_params=self.simulation_params
+        )
+
+        # Enable scene query support for humanoid-specific operations
+        if self.simulation_params["enable_scene_query_support"]:
+            world.enable_scene_query_support()
+
+        return world
+```
+
+### 9.2.3 Humanoid-Specific Physics Configuration
+
+```python
+# Advanced physics configuration for humanoid dynamics
+humanoid_physics_config = {
+    "balance_stabilization": {
+        "com_stabilization": {
+            "linear_damping": 0.1,
+            "angular_damping": 0.2,
+            "stabilization_factor": 0.01
+        },
+        "joint_stabilization": {
+            "position_sleep_threshold": 0.001,
+            "velocity_sleep_threshold": 0.01,
+            "max_linear_velocity": 10.0,
+            "max_angular_velocity": 50.0
+        }
+    },
+    "contact_modeling": {
+        "contact_offsets": {
+            "contact_offset": 0.005,      # Contact offset for collision detection
+            "rest_offset": 0.0005,        # Rest offset for contact maintenance
+            "contact_surface_layer": 0.002  # Surface layer thickness
+        },
+        "friction_model": {
+            "friction_coefficient": 0.7,    # Default friction coefficient
+            "friction_combine_mode": "average",  # How to combine friction coefficients
+            "restitution_combine_mode": "average"  # How to combine restitution coefficients
+        },
+        "contact_solver": {
+            "solver_type": "tgs",           # TGS solver for stability
+            "position_iterations": 8,       # Position solver iterations
+            "velocity_iterations": 4,       # Velocity solver iterations
+            "projection_iterations": 4,     # Projection solver iterations
+            "sor": 1.3,                    # Successive Over-Relaxation parameter
+            "max_error_reduction": 0.1      # Max error reduction per iteration
+        }
+    },
+    "actuator_modeling": {
+        "pd_control": {
+            "position_gain": 100.0,         # P gain for position control
+            "velocity_gain": 10.0,          # D gain for velocity control
+            "max_force": 1000.0,            # Maximum actuator force
+            "max_velocity": 10.0            # Maximum actuator velocity
+        },
+        "motor_characteristics": {
+            "torque_constant": 0.1,         # Torque constant (Nm/A)
+            "gear_ratio": 100.0,            # Gear ratio
+            "max_current": 10.0,            # Maximum motor current (A)
+            "internal_friction": 0.01,      # Internal friction coefficient
+            "backlash": 0.001               # Gear backlash (rad)
+        }
+    }
+}
+
+# Physics material properties for humanoid components
+humanoid_material_properties = {
+    "feet_material": {
+        "static_friction": 0.8,      # High friction for stable footing
+        "dynamic_friction": 0.7,     # Dynamic friction slightly lower
+        "restitution": 0.1,          # Low restitution for stable contact
+        "compliance": 0.001,         # Slight compliance for realistic contact
+        "damping": 0.1               # Contact damping
+    },
+    "hand_material": {
+        "static_friction": 0.6,      # Moderate friction for grasping
+        "dynamic_friction": 0.5,
+        "restitution": 0.2,
+        "compliance": 0.002,
+        "damping": 0.05
+    },
+    "body_material": {
+        "static_friction": 0.3,      # Lower friction for sliding protection
+        "dynamic_friction": 0.3,
+        "restitution": 0.1,
+        "compliance": 0.001,
+        "damping": 0.01
+    },
+    "environment_material": {
+        "static_friction": 0.5,      # Generic environment friction
+        "dynamic_friction": 0.4,
+        "restitution": 0.1,
+        "compliance": 0.0001,
+        "damping": 0.01
+    }
+}
+```
+
+## 9.3 Physics Simulation for Humanoid Locomotion
+
+### 9.3.1 Dynamics Modeling for Bipedal Locomotion
+
+Humanoid locomotion requires accurate modeling of complex multi-body dynamics:
+
+```python
+# Dynamics modeling for humanoid walking
+class HumanoidDynamicsModel:
+    """Model for humanoid dynamics in Isaac Sim"""
+
+    def __init__(self, robot_mass=80.0, gravity=9.81):
+        self.mass = robot_mass
+        self.gravity = gravity
+
+        # Inertia properties for humanoid links
+        self.link_inertias = {
+            "pelvis": [1.0, 1.0, 1.0, 0.0, 0.0, 0.0],  # [ixx, iyy, izz, ixy, ixz, iyz]
+            "torso": [2.0, 2.0, 0.5, 0.0, 0.0, 0.0],
+            "head": [0.1, 0.1, 0.1, 0.0, 0.0, 0.0],
+            "upper_arm": [0.1, 0.1, 0.05, 0.0, 0.0, 0.0],
+            "lower_arm": [0.05, 0.05, 0.02, 0.0, 0.0, 0.0],
+            "hand": [0.02, 0.02, 0.02, 0.0, 0.0, 0.0],
+            "thigh": [0.5, 0.5, 0.1, 0.0, 0.0, 0.0],
+            "shin": [0.2, 0.2, 0.05, 0.0, 0.0, 0.0],
+            "foot": [0.1, 0.1, 0.05, 0.0, 0.0, 0.0]
+        }
+
+    def compute_inverse_dynamics(self, joint_positions, joint_velocities, joint_accelerations):
+        """Compute inverse dynamics to find required joint torques"""
+        # This is a simplified representation
+        # In practice, this would use more sophisticated algorithms like RNEA (Recursive Newton-Euler Algorithm)
+
+        # Calculate Coriolis and centrifugal effects
+        coriolis_terms = self._compute_coriolis_forces(joint_positions, joint_velocities)
+
+        # Calculate gravitational effects
+        gravity_terms = self._compute_gravity_forces(joint_positions)
+
+        # Calculate inertial effects
+        inertia_terms = self._compute_inertial_forces(joint_accelerations)
+
+        # Total required torques
+        required_torques = inertia_terms + coriolis_terms + gravity_terms
+
+        return required_torques
+
+    def _compute_coriolis_forces(self, q, q_dot):
+        """Compute Coriolis and centrifugal forces"""
+        # Simplified implementation - in reality this would involve the Christoffel symbols
+        # and would be computed based on the robot's specific kinematic structure
+        return np.zeros_like(q_dot)
+
+    def _compute_gravity_forces(self, q):
+        """Compute gravity-induced forces"""
+        # Simplified implementation - depends on robot configuration
+        return np.zeros_like(q)
+
+    def _compute_inertial_forces(self, q_ddot):
+        """Compute inertial forces"""
+        # Simplified implementation - would involve full mass matrix calculation
+        return np.zeros_like(q_ddot)
+
+    def compute_balance_metrics(self, com_pos, com_vel, zmp_pos):
+        """Compute balance metrics for humanoid locomotion"""
+        # Zero-Moment Point (ZMP) calculation
+        zmp_error = np.linalg.norm(zmp_pos[:2] - com_pos[:2])
+
+        # Angular momentum around CoM
+        angular_momentum = self._compute_angular_momentum(com_vel)
+
+        # Stability margin
+        support_polygon = self._compute_support_polygon()
+        stability_margin = self._compute_distance_to_support_boundary(com_pos[:2], support_polygon)
+
+        return {
+            "zmp_error": zmp_error,
+            "angular_momentum": angular_momentum,
+            "stability_margin": stability_margin
+        }
+
+    def _compute_angular_momentum(self, com_vel):
+        """Compute angular momentum around center of mass"""
+        # Simplified calculation
+        return np.cross(com_vel[:2], self.mass * com_vel[2])
+
+    def _compute_support_polygon(self):
+        """Compute the support polygon based on contact points"""
+        # Would be computed based on current foot contact points
+        return np.array([[0.1, 0.05], [0.1, -0.05], [-0.1, -0.05], [-0.1, 0.05]])  # Example
+
+    def _compute_distance_to_support_boundary(self, point, polygon):
+        """Compute distance from point to support polygon boundary"""
+        # Would use computational geometry to find distance
+        return 0.0  # Placeholder
+```
+
+### 9.3.2 Contact Modeling for Humanoid Feet
+
+Accurate contact modeling is critical for stable humanoid locomotion:
+
+```python
+# Advanced contact modeling for humanoid feet
+foot_contact_model_config = {
+    "contact_geometry": {
+        "shape": "rectangular",           # Rectangular contact patch
+        "dimensions": [0.15, 0.08, 0.01], # Length, width, thickness (m)
+        "contact_points": 4,              # Number of contact points
+        "pressure_distribution": "elliptical", # Pressure distribution model
+        "contact_patch_offset": [0.0, 0.0, -0.01]  # Offset from ankle
+    },
+    "contact_dynamics": {
+        "friction_model": "cone",          # Friction cone model
+        "stiction_model": True,            # Include stiction effects
+        "micro_slip": 0.001,              # Allowable micro-slip (m)
+        "contact_damping": 1000.0,         # Contact damping coefficient
+        "elastic_modulus": 1e6,           # Elastic modulus for soft contacts
+        "poisson_ratio": 0.3              # Poisson's ratio for material
+    },
+    "contact_solver": {
+        "solver_iterations": 50,           # Solver iterations for contacts
+        "solver_tolerance": 1e-6,         # Convergence tolerance
+        "contact_offset": 0.001,          # Penetration allowance
+        "rest_offset": 0.0,               # Resting contact offset
+        "baumgarte_stabilization": 0.1    # Baumgarte stabilization parameter
+    },
+    "balance_considerations": {
+        "center_of_pressure": True,        # Enable CoP computation
+        "zero_moment_point": True,         # Enable ZMP computation
+        "capture_point": True,             # Enable capture point computation
+        "ankle_strategy_enabled": True,    # Enable ankle strategy for balance
+        "hip_strategy_enabled": True,      # Enable hip strategy for balance
+        "stepping_strategy": True          # Enable stepping for balance recovery
+    }
+}
+
+# Implementation of foot contact model
+class FootContactModel:
+    """Model for humanoid foot contacts in Isaac Sim"""
+
+    def __init__(self, config):
+        self.config = config
+        self.contact_points = self._generate_contact_points()
+        self.pressure_distribution = self._generate_pressure_distribution()
+
+    def _generate_contact_points(self):
+        """Generate contact points based on foot geometry"""
+        # Create contact points in a rectangular pattern
+        length = self.config["contact_geometry"]["dimensions"][0]
+        width = self.config["contact_geometry"]["dimensions"][1]
+
+        points = []
+        # Generate grid of contact points
+        for i in range(2):  # 2 points along length
+            for j in range(2):  # 2 points along width
+                x = (i - 0.5) * length
+                y = (j - 0.5) * width
+                points.append([x, y, 0.0])
+
+        return np.array(points)
+
+    def _generate_pressure_distribution(self):
+        """Generate pressure distribution across foot"""
+        # Elliptical pressure distribution model
+        points = self.contact_points
+        pressures = np.zeros(len(points))
+
+        # Calculate distances from center
+        center = np.array([0.0, 0.0, 0.0])
+        for i, point in enumerate(points):
+            dist_from_center = np.linalg.norm(point[:2] - center[:2])
+            # Elliptical distribution (simplified)
+            pressure = np.exp(-dist_from_center / 0.05)  # Decay factor
+            pressures[i] = pressure
+
+        return pressures / np.sum(pressures)  # Normalize
+
+    def compute_contact_forces(self, foot_pose, ground_normal, ground_position):
+        """Compute contact forces for foot-ground interaction"""
+        # Transform contact points to world coordinates
+        world_points = self._transform_points_to_world(foot_pose, self.contact_points)
+
+        # Determine which points are in contact
+        contact_mask = self._check_ground_contacts(world_points, ground_position)
+
+        # Compute forces at contact points
+        forces = np.zeros((len(world_points), 3))
+
+        for i, point in enumerate(world_points):
+            if contact_mask[i]:
+                # Compute normal force based on penetration depth
+                penetration = max(0, ground_position[2] - point[2])
+
+                # Spring-damper model
+                normal_force = self.config["contact_dynamics"]["elastic_modulus"] * penetration
+                damping_force = self.config["contact_dynamics"]["contact_damping"] * (point[2] - ground_position[2])
+
+                # Total normal force
+                total_normal_force = max(0, normal_force + damping_force)
+
+                # Apply friction cone constraint
+                tangential_force = self._apply_friction_cone(total_normal_force)
+
+                # Set contact force
+                forces[i] = tangential_force + total_normal_force * ground_normal
+
+        return forces
+
+    def _transform_points_to_world(self, pose, points):
+        """Transform points from foot frame to world frame"""
+        # Apply pose transformation to points
+        # pose should be in [position, quaternion] format
+        pos, quat = pose[:3], pose[3:]
+
+        # Convert quaternion to rotation matrix
+        rot_matrix = self._quaternion_to_rotation_matrix(quat)
+
+        # Transform points
+        world_points = []
+        for point in points:
+            rotated_point = np.dot(rot_matrix, point)
+            translated_point = rotated_point + pos
+            world_points.append(translated_point)
+
+        return np.array(world_points)
+
+    def _check_ground_contacts(self, world_points, ground_position):
+        """Check which points are in contact with ground"""
+        # Simple ground contact check
+        tolerance = 0.001  # 1mm tolerance
+        contacts = []
+
+        for point in world_points:
+            # Check if point is close to ground
+            distance_to_ground = abs(point[2] - ground_position[2])
+            contacts.append(distance_to_ground < tolerance)
+
+        return contacts
+
+    def _apply_friction_cone_constraint(self, normal_force):
+        """Apply friction cone constraint to tangential forces"""
+        # Friction coefficient
+        mu = self.config["contact_dynamics"]["friction_coefficient"]
+
+        # Maximum tangential force
+        max_tangential_force = mu * normal_force
+
+        # For simplicity, return zero tangential force
+        # In a real implementation, this would consider actual tangential forces
+        return np.array([0.0, 0.0, 0.0])
+
+    def update_contact_properties(self, terrain_type):
+        """Update contact properties based on terrain type"""
+        terrain_properties = {
+            "flat_ground": {
+                "friction_coefficient": 0.7,
+                "elastic_modulus": 1e6,
+                "damping_coefficient": 1000
+            },
+            "carpet": {
+                "friction_coefficient": 0.8,
+                "elastic_modulus": 5e5,
+                "damping_coefficient": 2000
+            },
+            "tile": {
+                "friction_coefficient": 0.6,
+                "elastic_modulus": 2e6,
+                "damping_coefficient": 500
+            },
+            "grass": {
+                "friction_coefficient": 0.5,
+                "elastic_modulus": 1e5,
+                "damping_coefficient": 3000
+            }
+        }
+
+        if terrain_type in terrain_properties:
+            props = terrain_properties[terrain_type]
+            self.config["contact_dynamics"]["friction_coefficient"] = props["friction_coefficient"]
+            self.config["contact_dynamics"]["elastic_modulus"] = props["elastic_modulus"]
+            self.config["contact_dynamics"]["damping_coefficient"] = props["damping_coefficient"]
+```
+
+## 9.4 Rendering and Visualization
+
+### 9.4.1 High-Fidelity Rendering Setup
+
+For humanoid robotics, high-fidelity rendering is essential for training vision-based systems:
+
+```python
+# High-fidelity rendering configuration for humanoid simulation
+rendering_config = {
+    "ray_tracing": {
+        "enable_ray_tracing": True,
+        "max_bounces": 8,                    # Maximum ray bounces
+        "light_sampling": "multiple_importance",  # Light sampling method
+        "environment_sampling": True,         # Sample environment lights
+        "material_sampling": True            # Sample material properties
+    },
+    "global_illumination": {
+        "enable_living_color": True,         # Global illumination
+        "light_linking": True,               # Proper light linking
+        "volume_scattering": True,           # Volume scattering effects
+        "subsurface_scattering": True        # Subsurface scattering
+    },
+    "camera_simulation": {
+        "rgb_camera": {
+            "resolution": [1280, 720],       # HD resolution
+            "fov": 60,                       # Field of view in degrees
+            "near_clip": 0.1,                # Near clipping plane
+            "far_clip": 100.0,               # Far clipping plane
+            "sensor_tilt": 0.0,              # Sensor tilt angle
+            "mounting_height": 1.5           # Camera mounting height
+        },
+        "depth_camera": {
+            "resolution": [640, 480],        # Depth map resolution
+            "fov": 60,                       # Field of view
+            "min_range": 0.1,                # Minimum depth range
+            "max_range": 10.0,               # Maximum depth range
+            "depth_unit": "meters",          # Depth unit
+            "depth_format": "float32"        # Depth data format
+        },
+        "stereo_camera": {
+            "baseline": 0.12,                # Stereo baseline (m)
+            "focal_length": 0.008,           # Focal length (m)
+            "disparity_range": (-64, 64),    # Disparity range
+            "algorithm": "sgbm"              # Stereo algorithm
+        }
+    },
+    "sensor_noise_simulation": {
+        "camera_noise": {
+            "gaussian_noise_std": 0.01,      # Standard deviation of Gaussian noise
+            "poisson_noise_factor": 0.001,   # Poisson noise scaling factor
+            "dropout_probability": 0.001,    # Pixel dropout probability
+            "temporal_noise": True           # Enable temporal noise
+        },
+        "distortion": {
+            "radial_distortion": True,       # Enable radial distortion
+            "tangential_distortion": True,   # Enable tangential distortion
+            "thin_prism_distortion": False,  # Thin prism distortion
+            "k1": -0.1,                     # Radial distortion coefficient
+            "k2": 0.02,                     # Radial distortion coefficient
+            "k3": -0.001,                   # Radial distortion coefficient
+            "p1": 0.001,                    # Tangential distortion coefficient
+            "p2": -0.001                    # Tangential distortion coefficient
+        }
+    },
+    "performance_settings": {
+        "render_resolution_scale": 0.8,      # Scale rendering resolution
+        "lod_bias": 0.5,                    # Level of detail bias
+        "texture_resolution": "high",       # Texture resolution level
+        "shadow_quality": "high",           # Shadow quality level
+        "reflection_quality": "medium",     # Reflection quality level
+        "post_processing": "full"           # Post-processing level
+    }
+}
+
+# Implementation of rendering manager
+class RenderingManager:
+    """Manage high-fidelity rendering for humanoid simulation"""
+
+    def __init__(self, config):
+        self.config = config
+        self.cameras = {}
+        self.lights = {}
+        self.materials = {}
+
+    def setup_cameras(self, robot_prim_path):
+        """Set up cameras for humanoid robot"""
+        # Create RGB camera
+        rgb_camera_path = f"{robot_prim_path}/head/rgb_camera"
+        self.cameras["rgb"] = self._create_rgb_camera(rgb_camera_path)
+
+        # Create depth camera
+        depth_camera_path = f"{robot_prim_path}/head/depth_camera"
+        self.cameras["depth"] = self._create_depth_camera(depth_camera_path)
+
+        # Create fisheye camera for wide FOV
+        fisheye_camera_path = f"{robot_prim_path}/head/fisheye_camera"
+        self.cameras["fisheye"] = self._create_fisheye_camera(fisheye_camera_path)
+
+    def _create_rgb_camera(self, camera_path):
+        """Create RGB camera sensor"""
+        from omni.isaac.sensor import Camera
+
+        camera = Camera(
+            prim_path=camera_path,
+            frequency=self.config["camera_simulation"]["rgb_camera"]["fov"],
+            resolution=self.config["camera_simulation"]["rgb_camera"]["resolution"]
+        )
+
+        # Apply noise parameters
+        if self.config["sensor_noise_simulation"]["camera_noise"]["gaussian_noise_std"] > 0:
+            camera.add_noise_params(
+                gaussian_std=self.config["sensor_noise_simulation"]["camera_noise"]["gaussian_noise_std"],
+                poisson_multiplier=self.config["sensor_noise_simulation"]["camera_noise"]["poisson_noise_factor"]
+            )
+
+        # Apply distortion parameters
+        if self.config["sensor_noise_simulation"]["distortion"]["radial_distortion"]:
+            camera.set_distortion_params(
+                k1=self.config["sensor_noise_simulation"]["distortion"]["k1"],
+                k2=self.config["sensor_noise_simulation"]["distortion"]["k2"],
+                k3=self.config["sensor_noise_simulation"]["distortion"]["k3"],
+                p1=self.config["sensor_noise_simulation"]["distortion"]["p1"],
+                p2=self.config["sensor_noise_simulation"]["distortion"]["p2"]
+            )
+
+        return camera
+
+    def _create_depth_camera(self, camera_path):
+        """Create depth camera sensor"""
+        from omni.isaac.sensor import Camera
+
+        depth_camera = Camera(
+            prim_path=camera_path,
+            frequency=self.config["camera_simulation"]["depth_camera"]["fov"],
+            resolution=self.config["camera_simulation"]["depth_camera"]["resolution"]
+        )
+
+        # Configure depth-specific parameters
+        depth_camera.set_depth_range(
+            min_range=self.config["camera_simulation"]["depth_camera"]["min_range"],
+            max_range=self.config["camera_simulation"]["depth_camera"]["max_range"]
+        )
+
+        return depth_camera
+
+    def _create_fisheye_camera(self, camera_path):
+        """Create fisheye camera sensor"""
+        from omni.isaac.sensor import Camera
+
+        fisheye_camera = Camera(
+            prim_path=camera_path,
+            frequency=180,  # 180 degree FOV for fisheye
+            resolution=[640, 640]  # Square resolution for fisheye
+        )
+
+        # Apply fisheye distortion model
+        fisheye_camera.set_distortion_params(
+            distortion_model="fisheye_equidistant",
+            distortion_coefficients=[0.1, 0.02, 0.0, 0.0]  # k1, k2, k3, k4
+        )
+
+        return fisheye_camera
+
+    def setup_advanced_lighting(self):
+        """Set up advanced lighting for realistic rendering"""
+        # Create dome light for even illumination
+        self.lights["dome"] = self._create_dome_light()
+
+        # Add directional sun light
+        self.lights["sun"] = self._create_sun_light()
+
+        # Add spot lights for localized illumination
+        self.lights["spot"] = self._create_spot_lights()
+
+    def _create_dome_light(self):
+        """Create dome light for even scene illumination"""
+        from omni.isaac.core.utils.prims import define_prim
+        from pxr import UsdLux
+
+        dome_light_path = "/World/DomeLight"
+        define_prim(dome_light_path, "DomeLight")
+
+        dome_light = UsdLux.DomeLight.Define(self.stage, dome_light_path)
+        dome_light.CreateIntensityAttr(1.0)
+        dome_light.CreateTextureFileAttr("path/to/environment_map.hdr")
+        dome_light.CreateColorAttr((0.9, 0.9, 1.0))  # Slightly blue tint
+
+        return dome_light
+
+    def _create_sun_light(self):
+        """Create directional sun light"""
+        from omni.isaac.core.utils.prims import define_prim
+        from pxr import UsdLux
+
+        sun_light_path = "/World/SunLight"
+        define_prim(sun_light_path, "DistantLight")
+
+        sun_light = UsdLux.DistantLight.Define(self.stage, sun_light_path)
+        sun_light.CreateIntensityAttr(3000.0)
+        sun_light.CreateColorAttr((1.0, 0.98, 0.94))  # Warm sunlight
+        sun_light.AddRotateXYZOp().Set((-45, 30, 0))  # Direction
+
+        return sun_light
+
+    def _create_spot_lights(self):
+        """Create spot lights for localized illumination"""
+        from omni.isaac.core.utils.prims import define_prim
+        from pxr import UsdLux
+
+        spot_lights = []
+        positions = [
+            [2.0, 0.0, 3.0],
+            [-2.0, 0.0, 3.0],
+            [0.0, 2.0, 3.0],
+            [0.0, -2.0, 3.0]
+        ]
+
+        for i, pos in enumerate(positions):
+            spot_light_path = f"/World/SpotLight_{i}"
+            define_prim(spot_light_path, "SpotLight")
+
+            spot_light = UsdLux.SpotLight.Define(self.stage, spot_light_path)
+            spot_light.CreateIntensityAttr(500.0)
+            spot_light.CreateColorAttr((1.0, 1.0, 1.0))
+            spot_light.AddTranslateOp().Set(pos)
+            spot_light.CreateShapingConeAngleAttr(60.0)
+            spot_light.CreateShapingConeSoftnessAttr(0.2)
+
+            spot_lights.append(spot_light)
+
+        return spot_lights
+```
+
+### 9.4.2 Material and Texture Simulation
+
+```python
+# Material and texture simulation for realistic humanoid rendering
+material_config = {
+    "robot_materials": {
+        "body_shell": {
+            "base_color": [0.7, 0.7, 0.7],      # Metallic gray
+            "metallic": 0.8,                     # Metallic appearance
+            "roughness": 0.2,                    # Smooth surface
+            "specular": 0.5,                     # Specular reflection
+            "opacity": 1.0,                      # Opaque
+            "ior": 1.5,                         # Index of refraction
+            "normal_map_strength": 0.1,          # Normal map detail
+            "displacement_scale": 0.001          # Surface displacement
+        },
+        "joints": {
+            "base_color": [0.3, 0.3, 0.3],      # Dark gray
+            "metallic": 0.9,                     # Highly metallic
+            "roughness": 0.3,                    # Slightly rough
+            "specular": 0.8,
+            "opacity": 1.0,
+            "ior": 1.8
+        },
+        "actuators": {
+            "base_color": [0.2, 0.2, 0.2],      # Black
+            "metallic": 0.1,                     # Non-metallic
+            "roughness": 0.7,                    # Rough surface
+            "specular": 0.2,
+            "opacity": 1.0,
+            "ior": 1.3
+        }
+    },
+    "environment_materials": {
+        "floor": {
+            "base_color": [0.8, 0.8, 0.8],      # Light gray
+            "metallic": 0.0,                     # Non-metallic
+            "roughness": 0.5,                    # Medium roughness
+            "specular": 0.1,
+            "opacity": 1.0,
+            "ior": 1.4,
+            "texture": "assets/textures/floor_tile_01.png"
+        },
+        "walls": {
+            "base_color": [0.9, 0.9, 0.9],      # White
+            "metallic": 0.0,
+            "roughness": 0.6,
+            "specular": 0.1,
+            "opacity": 1.0,
+            "ior": 1.3,
+            "texture": "assets/textures/wall_paint_01.png"
+        },
+        "furniture": {
+            "base_color": [0.6, 0.4, 0.2],      # Wood tone
+            "metallic": 0.0,
+            "roughness": 0.4,
+            "specular": 0.2,
+            "opacity": 1.0,
+            "ior": 1.5,
+            "texture": "assets/textures/wood_grain_01.png"
+        }
+    },
+    "special_effects": {
+        "wet_surfaces": {
+            "roughness_multiplier": 0.3,         # Reduce roughness for wet effect
+            "specular_multiplier": 1.5,          # Increase specular for wet effect
+            "normal_map_strength": 0.5           # Add water ripples
+        },
+        "polished_surfaces": {
+            "roughness_multiplier": 0.1,
+            "metallic_multiplier": 1.2,
+            "specular_multiplier": 2.0
+        }
+    }
+}
+
+# Implementation of material manager
+class MaterialManager:
+    """Manage materials and textures for realistic rendering"""
+
+    def __init__(self, config):
+        self.config = config
+        self.materials = {}
+        self.textures = {}
+
+    def create_robot_materials(self):
+        """Create materials for humanoid robot"""
+        for part_name, part_config in self.config["robot_materials"].items():
+            material_path = f"/World/Materials/Robot_{part_name.replace(' ', '_')}"
+            self.materials[part_name] = self._create_material(material_path, part_config)
+
+    def create_environment_materials(self):
+        """Create materials for environment"""
+        for surface_name, surface_config in self.config["environment_materials"].items():
+            material_path = f"/World/Materials/Env_{surface_name.replace(' ', '_')}"
+            self.materials[f"env_{surface_name}"] = self._create_material(material_path, surface_config)
+
+    def _create_material(self, path, config):
+        """Create a material with specified properties"""
+        from pxr import UsdShade, Sdf
+
+        # Create material prim
+        stage = omni.usd.get_context().get_stage()
+        material = UsdShade.Material.Define(stage, path)
+
+        # Create USD preview surface shader
+        shader_path = Sdf.Path(f"{path}/Shader")
+        shader = UsdShade.Shader.Define(stage, shader_path)
+        shader.CreateIdAttr("UsdPreviewSurface")
+
+        # Set material properties
+        if "base_color" in config:
+            shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set(config["base_color"])
+        if "metallic" in config:
+            shader.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(config["metallic"])
+        if "roughness" in config:
+            shader.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(config["roughness"])
+        if "specular" in config:
+            shader.CreateInput("specularColor", Sdf.ValueTypeNames.Color3f).Set([config["specular"]] * 3)
+        if "opacity" in config:
+            shader.CreateInput("opacity", Sdf.ValueTypeNames.Float).Set(config["opacity"])
+        if "ior" in config:
+            shader.CreateInput("indexOfRefraction", Sdf.ValueTypeNames.Float).Set(config["ior"])
+
+        # Bind material to surface
+        material.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), "surface")
+
+        return material
+
+    def apply_material_to_robot(self, robot_prim_path):
+        """Apply materials to robot parts"""
+        # Apply materials to different robot parts based on their function
+        for link_name, material_name in [
+            ("base_link", "body_shell"),
+            ("torso", "body_shell"),
+            ("head", "body_shell"),
+            ("upper_arm", "joints"),
+            ("lower_arm", "body_shell"),
+            ("hand", "actuators"),
+            ("thigh", "joints"),
+            ("shin", "body_shell"),
+            ("foot", "actuators")
+        ]:
+            link_path = f"{robot_prim_path}/{link_name}"
+            if link_path in self.materials:
+                self._assign_material_to_geometry(link_path, self.materials[material_name])
+
+    def _assign_material_to_geometry(self, geometry_path, material):
+        """Assign material to geometry prim"""
+        from pxr import UsdShade
+
+        stage = omni.usd.get_context().get_stage()
+        geom_prim = stage.GetPrimAtPath(geometry_path)
+
+        if geom_prim.IsValid():
+            UsdShade.MaterialBindingAPI(geom_prim).Bind(material)
+        else:
+            print(f"Warning: Geometry prim not found at {geometry_path}")
+```
+
+## 9.5 Sensor Simulation and Integration
+
+### 9.5.1 IMU Simulation
+
+Humanoid robots require accurate IMU simulation for balance and locomotion:
+
+```python
+# IMU simulation for humanoid balance
+imu_config = {
+    "imu_properties": {
+        "accelerometer": {
+            "range": 16.0,                    # g (Earth gravities)
+            "resolution": 1e-6,               # g per LSB
+            "noise_density": 100.0e-6,        # g/sqrt(Hz)
+            "random_walk": 1.0e-6,            # g/s^2/sqrt(Hz)
+            "bias_instability": 5.0e-6,       # g
+            "turn_on_bias_sigma": 20.0e-6     # g
+        },
+        "gyroscope": {
+            "range": 2000.0,                  # deg/s
+            "resolution": 0.001,              # deg/s per LSB
+            "noise_density": 0.01,             # deg/s/sqrt(Hz)
+            "random_walk": 0.0038,             # deg/s^2/sqrt(Hz)
+            "bias_instability": 10.0,          # deg/hour/sqrt(Hz)
+            "turn_on_bias_sigma": 0.5          # deg/s
+        },
+        "magnetometer": {
+            "range": 1300.0,                  # microTesla
+            "resolution": 0.1,                # microTesla per LSB
+            "noise_density": 100.0,            # nT/sqrt(Hz)
+            "hard_iron_distortion": [0.0, 0.0, 0.0],  # microTesla
+            "soft_iron_matrix": [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0]
+            ]
+        }
+    },
+    "sensor_placement": {
+        "primary_imu": {
+            "mounting_link": "torso",          # Mount on torso for body orientation
+            "position_offset": [0.0, 0.0, 0.1],  # 10cm above torso origin
+            "orientation_offset": [0.0, 0.0, 0.0, 1.0]  # Identity quaternion
+        },
+        "secondary_imu": {
+            "mounting_link": "head",           # Mount on head for head orientation
+            "position_offset": [0.0, 0.0, 0.05],  # 5cm above head origin
+            "orientation_offset": [0.0, 0.0, 0.0, 1.0]
+        }
+    },
+    "sampling_parameters": {
+        "accelerometer_rate": 1000,            # Hz
+        "gyroscope_rate": 1000,               # Hz
+        "magnetometer_rate": 100,             # Hz (typically lower)
+        "timestamp_accuracy": 1e-6            # 1 microsecond accuracy
+    }
+}
+
+# Implementation of IMU simulator
+class IMUSimulator:
+    """Simulate IMU sensors for humanoid robot"""
+
+    def __init__(self, config):
+        self.config = config
+        self.accel_noise_gen = self._initialize_noise_generator("accelerometer")
+        self.gyro_noise_gen = self._initialize_noise_generator("gyroscope")
+        self.mag_noise_gen = self._initialize_noise_generator("magnetometer")
+
+        # Bias drift simulation
+        self.accel_bias_drift = np.zeros(3)
+        self.gyro_bias_drift = np.zeros(3)
+        self.mag_bias_drift = np.zeros(3)
+
+    def _initialize_noise_generator(self, sensor_type):
+        """Initialize noise generator for specified sensor type"""
+        sensor_config = self.config["imu_properties"][sensor_type]
+
+        # Create noise model based on sensor specifications
+        noise_model = {
+            "noise_density": sensor_config["noise_density"],
+            "random_walk": sensor_config["random_walk"],
+            "bias_instability": sensor_config["bias_instability"],
+            "turn_on_bias_sigma": sensor_config["turn_on_bias_sigma"]
+        }
+
+        return noise_model
+
+    def simulate_imu_reading(self, true_state, dt):
+        """
+        Simulate IMU reading based on true state and sensor model
+
+        Args:
+            true_state: Dictionary containing true acceleration, angular velocity, magnetic field
+            dt: Time step since last reading
+
+        Returns:
+            Dictionary containing noisy IMU measurements
+        """
+        # Get true values
+        true_accel = np.array(true_state.get("acceleration", [0.0, 0.0, -9.81]))
+        true_ang_vel = np.array(true_state.get("angular_velocity", [0.0, 0.0, 0.0]))
+        true_mag_field = np.array(true_state.get("magnetic_field", [0.21, 0.0, 0.42]))  # Earth's magnetic field
+
+        # Simulate accelerometer
+        accel_measurement = self._simulate_accelerometer(true_accel, dt)
+
+        # Simulate gyroscope
+        gyro_measurement = self._simulate_gyroscope(true_ang_vel, dt)
+
+        # Simulate magnetometer
+        mag_measurement = self._simulate_magnetometer(true_mag_field, dt)
+
+        # Update bias drift
+        self._update_bias_drift(dt)
+
+        return {
+            "acceleration": accel_measurement,
+            "angular_velocity": gyro_measurement,
+            "magnetic_field": mag_measurement,
+            "timestamp": true_state.get("timestamp", 0.0)
+        }
+
+    def _simulate_accelerometer(self, true_accel, dt):
+        """Simulate accelerometer measurement"""
+        # Add noise based on noise density
+        accel_noise_std = self.accel_noise_gen["noise_density"] / np.sqrt(dt)
+        accel_noise = np.random.normal(0, accel_noise_std, size=3)
+
+        # Add bias and bias drift
+        accel_bias = np.random.normal(0, self.accel_noise_gen["turn_on_bias_sigma"], size=3)
+        accel_bias += self.accel_bias_drift
+
+        # Add random walk
+        random_walk = np.random.normal(0, self.accel_noise_gen["random_walk"] * np.sqrt(dt), size=3)
+
+        # Combine all effects
+        measured_accel = true_accel + accel_noise + accel_bias + random_walk
+
+        # Apply range limits
+        max_range = self.config["imu_properties"]["accelerometer"]["range"] * 9.81  # Convert g to m/s²
+        measured_accel = np.clip(measured_accel, -max_range, max_range)
+
+        return measured_accel
+
+    def _simulate_gyroscope(self, true_ang_vel, dt):
+        """Simulate gyroscope measurement"""
+        # Convert deg/s to rad/s for internal calculations
+        true_ang_vel_rad = true_ang_vel * np.pi / 180.0
+
+        # Add noise based on noise density
+        gyro_noise_std = self.gyro_noise_gen["noise_density"] * np.pi / 180.0 / np.sqrt(dt)
+        gyro_noise = np.random.normal(0, gyro_noise_std, size=3)
+
+        # Add bias and bias drift
+        gyro_bias = np.random.normal(0, self.gyro_noise_gen["turn_on_bias_sigma"] * np.pi / 180.0, size=3)
+        gyro_bias += self.gyro_bias_drift
+
+        # Add random walk
+        random_walk = np.random.normal(0, self.gyro_noise_gen["random_walk"] * np.pi / 180.0 * np.sqrt(dt), size=3)
+
+        # Combine all effects
+        measured_ang_vel_rad = true_ang_vel_rad + gyro_noise + gyro_bias + random_walk
+
+        # Convert back to deg/s
+        measured_ang_vel = measured_ang_vel_rad * 180.0 / np.pi
+
+        # Apply range limits
+        max_range = self.config["imu_properties"]["gyroscope"]["range"] * np.pi / 180.0
+        measured_ang_vel = np.clip(measured_ang_vel, -max_range, max_range)
+
+        return measured_ang_vel
+
+    def _simulate_magnetometer(self, true_mag_field, dt):
+        """Simulate magnetometer measurement"""
+        # Add noise based on noise density
+        mag_noise_std = self.mag_noise_gen["noise_density"] * 1e-9  # Convert nT to Tesla
+        mag_noise = np.random.normal(0, mag_noise_std, size=3)
+
+        # Add bias and bias drift
+        mag_bias = np.random.normal(0, self.mag_noise_gen["turn_on_bias_sigma"] * 1e-6, size=3)  # microTesla to Tesla
+        mag_bias += self.mag_bias_drift
+
+        # Combine effects
+        measured_mag_field = true_mag_field + mag_noise + mag_bias
+
+        # Apply range limits
+        max_range = self.config["imu_properties"]["magnetometer"]["range"] * 1e-6  # microTesla to Tesla
+        measured_mag_field = np.clip(measured_mag_field, -max_range, max_range)
+
+        return measured_mag_field
+
+    def _update_bias_drift(self, dt):
+        """Update bias drift using first-order Gauss-Markov process"""
+        # Time constants for bias instability (typical values)
+        tau_accel = 1000.0  # seconds
+        tau_gyro = 1000.0   # seconds
+        tau_mag = 1000.0    # seconds
+
+        # Update bias drift using Ornstein-Uhlenbeck process
+        self.accel_bias_drift = self.accel_bias_drift * np.exp(-dt/tau_accel) + \
+                               np.random.normal(0, self.accel_noise_gen["bias_instability"] * np.sqrt(dt), size=3)
+
+        self.gyro_bias_drift = self.gyro_bias_drift * np.exp(-dt/tau_gyro) + \
+                              np.random.normal(0, self.gyro_noise_gen["bias_instability"] * np.pi / 180.0 * np.sqrt(dt), size=3)
+
+        self.mag_bias_drift = self.mag_bias_drift * np.exp(-dt/tau_mag) + \
+                             np.random.normal(0, self.mag_noise_gen["bias_instability"] * 1e-6 * np.sqrt(dt), size=3)
+```
+
+### 9.5.2 Force/Torque Sensor Simulation
+
+```python
+# Force/Torque sensor simulation for humanoid manipulation
+ft_sensor_config = {
+    "wrench_sensors": {
+        "left_foot": {
+            "sensor_type": "6dof_force_torque",
+            "measurement_range": {
+                "force": [2000.0, 2000.0, 2000.0],  # [Fx, Fy, Fz] in Newtons
+                "torque": [200.0, 200.0, 200.0]     # [Tx, Ty, Tz] in Nm
+            },
+            "resolution": {
+                "force": [0.1, 0.1, 0.1],          # Newtons per LSB
+                "torque": [0.01, 0.01, 0.01]       # Nm per LSB
+            },
+            "noise": {
+                "force_std": [1.0, 1.0, 2.0],       # Newtons
+                "torque_std": [0.1, 0.1, 0.2]       # Nm
+            },
+            "bandwidth": 1000,                       # Hz
+            "temperature_drift": {
+                "force_ppm_per_celsius": 50,         # ppm/°C
+                "torque_ppm_per_celsius": 100        # ppm/°C
+            }
+        },
+        "right_foot": {
+            "sensor_type": "6dof_force_torque",
+            "measurement_range": {
+                "force": [2000.0, 2000.0, 2000.0],
+                "torque": [200.0, 200.0, 200.0]
+            },
+            "resolution": {
+                "force": [0.1, 0.1, 0.1],
+                "torque": [0.01, 0.01, 0.01]
+            },
+            "noise": {
+                "force_std": [1.0, 1.0, 2.0],
+                "torque_std": [0.1, 0.1, 0.2]
+            },
+            "bandwidth": 1000,
+            "temperature_drift": {
+                "force_ppm_per_celsius": 50,
+                "torque_ppm_per_celsius": 100
+            }
+        },
+        "left_hand": {
+            "sensor_type": "6dof_force_torque",
+            "measurement_range": {
+                "force": [500.0, 500.0, 500.0],
+                "torque": [50.0, 50.0, 50.0]
+            },
+            "resolution": {
+                "force": [0.05, 0.05, 0.05],
+                "torque": [0.005, 0.005, 0.005]
+            },
+            "noise": {
+                "force_std": [0.5, 0.5, 1.0],
+                "torque_std": [0.05, 0.05, 0.1]
+            },
+            "bandwidth": 1000,
+            "temperature_drift": {
+                "force_ppm_per_celsius": 100,
+                "torque_ppm_per_celsius": 200
+            }
+        },
+        "right_hand": {
+            "sensor_type": "6dof_force_torque",
+            "measurement_range": {
+                "force": [500.0, 500.0, 500.0],
+                "torque": [50.0, 50.0, 50.0]
+            },
+            "resolution": {
+                "force": [0.05, 0.05, 0.05],
+                "torque": [0.005, 0.005, 0.005]
+            },
+            "noise": {
+                "force_std": [0.5, 0.5, 1.0],
+                "torque_std": [0.05, 0.05, 0.1]
+            },
+            "bandwidth": 1000,
+            "temperature_drift": {
+                "force_ppm_per_celsius": 100,
+                "torque_ppm_per_celsius": 200
+            }
+        }
+    },
+    "contact_sensors": {
+        "fingertip_sensors": {
+            "sensor_count": 6,                      # 3 per hand
+            "detection_threshold": 0.5,             # Newtons
+            "normal_accuracy": 0.01,                # Radians
+            "location_accuracy": 0.001,             # Meters
+            "slip_detection": True,
+            "friction_estimation": True
+        }
+    }
+}
+
+# Implementation of Force/Torque sensor simulator
+class FTSensorSimulator:
+    """Simulate Force/Torque sensors for humanoid robot"""
+
+    def __init__(self, config):
+        self.config = config
+        self.sensors = {}
+
+        # Initialize all sensors
+        for sensor_name, sensor_config in self.config["wrench_sensors"].items():
+            self.sensors[sensor_name] = self._initialize_sensor(sensor_name, sensor_config)
+
+    def _initialize_sensor(self, name, config):
+        """Initialize a force/torque sensor"""
+        sensor = {
+            "name": name,
+            "config": config,
+            "bias": np.zeros(6),  # [Fx, Fy, Fz, Tx, Ty, Tz]
+            "temperature": 25.0,  # Celsius
+            "last_update": 0.0
+        }
+
+        # Initialize bias with turn-on bias
+        bias_std = np.concatenate([
+            config["noise"]["force_std"],
+            config["noise"]["torque_std"]
+        ])
+        sensor["bias"] = np.random.normal(0, bias_std)
+
+        return sensor
+
+    def simulate_sensor_reading(self, sensor_name, true_wrench, dt, temperature=None):
+        """
+        Simulate force/torque sensor reading
+
+        Args:
+            sensor_name: Name of the sensor
+            true_wrench: True wrench vector [Fx, Fy, Fz, Tx, Ty, Tz]
+            dt: Time step since last reading
+            temperature: Current temperature (optional)
+
+        Returns:
+            Noisy sensor reading
+        """
+        if sensor_name not in self.sensors:
+            raise ValueError(f"Sensor {sensor_name} not found")
+
+        sensor = self.sensors[sensor_name]
+        config = sensor["config"]
+
+        # Convert to numpy array
+        true_wrench = np.array(true_wrench)
+
+        # Add measurement noise
+        noise_std = np.concatenate([
+            config["noise"]["force_std"],
+            config["noise"]["torque_std"]
+        ])
+        noise = np.random.normal(0, noise_std)
+
+        # Add bias
+        measured_wrench = true_wrench + noise + sensor["bias"]
+
+        # Apply temperature drift if temperature provided
+        if temperature is not None:
+            temp_diff = temperature - sensor["temperature"]
+            force_drift = measured_wrench[:3] * (config["temperature_drift"]["force_ppm_per_celsius"] * 1e-6 * temp_diff)
+            torque_drift = measured_wrench[3:] * (config["temperature_drift"]["torque_ppm_per_celsius"] * 1e-6 * temp_diff)
+            measured_wrench[:3] += force_drift
+            measured_wrench[3:] += torque_drift
+
+        # Apply range limits
+        force_limits = np.array(config["measurement_range"]["force"])
+        torque_limits = np.array(config["measurement_range"]["torque"])
+        limits = np.concatenate([force_limits, torque_limits])
+
+        measured_wrench = np.clip(measured_wrench, -limits, limits)
+
+        # Update sensor state
+        sensor["temperature"] = temperature if temperature is not None else sensor["temperature"]
+        sensor["last_update"] += dt
+
+        return measured_wrench
+
+    def get_sensor_data(self, sensor_name):
+        """Get the latest sensor data"""
+        if sensor_name not in self.sensors:
+            return None
+
+        # In a real implementation, this would return the last simulated reading
+        # For now, return the sensor configuration
+        return {
+            "name": self.sensors[sensor_name]["name"],
+            "configuration": self.sensors[sensor_name]["config"],
+            "bias": self.sensors[sensor_name]["bias"],
+            "temperature": self.sensors[sensor_name]["temperature"]
+        }
+```
+
+## 9.6 Integration with ROS 2
+
+### 9.6.1 Isaac Sim ROS Bridge Configuration
+
+```python
+# ROS 2 bridge configuration for Isaac Sim
+ros_bridge_config = {
+    "ros_bridge_settings": {
+        "bridge_type": "omni.isaac.ros_bridge",
+        "topic_prefix": "/humanoid_robot",
+        "frame_prefix": "humanoid/",
+        "qos_settings": {
+            "sensor_data": {
+                "history": "keep_last",
+                "depth": 1,
+                "reliability": "best_effort",
+                "durability": "volatile"
+            },
+            "control_commands": {
+                "history": "keep_last",
+                "depth": 10,
+                "reliability": "reliable",
+                "durability": "volatile"
+            },
+            "state_data": {
+                "history": "keep_last",
+                "depth": 10,
+                "reliability": "reliable",
+                "durability": "transient_local"
+            }
+        }
+    },
+    "sensor_topic_mapping": {
+        "cameras": {
+            "rgb": {
+                "topic": "/head/rgb_camera/image_rect_color",
+                "type": "sensor_msgs/msg/Image",
+                "frequency": 30
+            },
+            "depth": {
+                "topic": "/head/depth_camera/image_rect_raw",
+                "type": "sensor_msgs/msg/Image",
+                "frequency": 30
+            },
+            "camera_info": {
+                "topic": "/head/rgb_camera/camera_info",
+                "type": "sensor_msgs/msg/CameraInfo",
+                "frequency": 30
+            }
+        },
+        "imu": {
+            "primary": {
+                "topic": "/torso/imu/data",
+                "type": "sensor_msgs/msg/Imu",
+                "frequency": 100
+            },
+            "secondary": {
+                "topic": "/head/imu/data",
+                "type": "sensor_msgs/msg/Imu",
+                "frequency": 100
+            }
+        },
+        "force_torque": {
+            "left_foot": {
+                "topic": "/left_foot/force_torque",
+                "type": "geometry_msgs/msg/WrenchStamped",
+                "frequency": 1000
+            },
+            "right_foot": {
+                "topic": "/right_foot/force_torque",
+                "type": "geometry_msgs/msg/WrenchStamped",
+                "frequency": 1000
+            },
+            "left_hand": {
+                "topic": "/left_hand/force_torque",
+                "type": "geometry_msgs/msg/WrenchStamped",
+                "frequency": 1000
+            },
+            "right_hand": {
+                "topic": "/right_hand/force_torque",
+                "type": "geometry_msgs/msg/WrenchStamped",
+                "frequency": 1000
+            }
+        },
+        "joint_state": {
+            "topic": "/joint_states",
+            "type": "sensor_msgs/msg/JointState",
+            "frequency": 100
+        }
+    },
+    "control_topic_mapping": {
+        "joint_commands": {
+            "position": {
+                "topic": "/position_commands",
+                "type": "std_msgs/msg/Float64MultiArray",
+                "frequency": 100
+            },
+            "velocity": {
+                "topic": "/velocity_commands",
+                "type": "std_msgs/msg/Float64MultiArray",
+                "frequency": 100
+            },
+            "effort": {
+                "topic": "/effort_commands",
+                "type": "std_msgs/msg/Float64MultiArray",
+                "frequency": 100
+            }
+        },
+        "navigation": {
+            "goal_pose": {
+                "topic": "/goal_pose",
+                "type": "geometry_msgs/msg/PoseStamped",
+                "frequency": 10
+            },
+            "cmd_vel": {
+                "topic": "/cmd_vel",
+                "type": "geometry_msgs/msg/Twist",
+                "frequency": 50
+            }
+        }
+    }
+}
+
+# Example ROS 2 node for Isaac Sim integration
+class IsaacSimROSInterface:
+    """Interface between Isaac Sim and ROS 2"""
+
+    def __init__(self, node_name="isaac_sim_interface"):
+        # In Isaac Sim, we use their ROS bridge extensions
+        # This is a conceptual implementation showing how the interface would work
+        self.node_name = node_name
+        self.isaac_sim_initialized = False
+
+    def initialize_isaac_sim_bridge(self):
+        """Initialize the Isaac Sim ROS bridge"""
+        # In practice, this would involve:
+        # 1. Loading the omni.isaac.ros_bridge extension
+        # 2. Setting up the bridge configuration
+        # 3. Mapping Isaac Sim topics to ROS 2 topics
+        print("Initializing Isaac Sim ROS bridge...")
+
+        # This would typically be done in Isaac Sim's extension system
+        # For demonstration purposes:
+        self.isaac_sim_initialized = True
+        print("Isaac Sim ROS bridge initialized successfully")
+
+    def create_sensor_publishers(self, sensor_config):
+        """Create ROS publishers for Isaac Sim sensors"""
+        # In Isaac Sim, sensors automatically publish to ROS topics
+        # when the ROS bridge is configured properly
+        print("Setting up sensor publishing through Isaac Sim bridge...")
+
+        # The actual setup would be done in USD files or through Isaac Sim's API
+        for sensor_type, sensor_info in sensor_config.items():
+            print(f"  Configured {sensor_type} sensor publishing to {sensor_info['topic']}")
+
+    def create_control_subscribers(self, control_config):
+        """Create ROS subscribers for Isaac Sim control"""
+        # In Isaac Sim, control commands are automatically subscribed
+        # when the ROS bridge is configured properly
+        print("Setting up control subscription through Isaac Sim bridge...")
+
+        # The actual setup would be done in USD files or through Isaac Sim's API
+        for control_type, control_info in control_config.items():
+            print(f"  Configured {control_type} control subscription from {control_info['topic']}")
+
+    def synchronize_simulation_clock(self):
+        """Synchronize Isaac Sim clock with ROS clock"""
+        # Isaac Sim can publish clock messages to synchronize with ROS
+        print("Clock synchronization enabled")

@@ -1,0 +1,64 @@
+{
+  "ros_bridge_config": {
+    "enabled": true,
+    "ros_distro": "jazzy",
+    "bridge_topics": [
+      {
+        "isaacsim": "/isaac_sim/robot/joint_commands",
+        "ros": "/joint_commands",
+        "type": "std_msgs/Float64MultiArray",
+        "direction": "out"
+      },
+      {
+        "isaacsim": "/isaac_sim/robot/joint_states",
+        "ros": "/joint_states",
+        "type": "sensor_msgs/JointState",
+        "direction": "in"
+      },
+      {
+        "isaacsim": "/isaac_sim/robot/robot_description",
+        "ros": "/robot_description",
+        "type": "std_msgs/String",
+        "direction": "in"
+      },
+      {
+        "isaacsim": "/isaac_sim/camera/rgb/image_raw",
+        "ros": "/camera/rgb/image_raw",
+        "type": "sensor_msgs/Image",
+        "direction": "in"
+      },
+      {
+        "isaacsim": "/isaac_sim/camera/depth/image_raw",
+        "ros": "/camera/depth/image_raw",
+        "type": "sensor_msgs/Image",
+        "direction": "in"
+      },
+      {
+        "isaacsim": "/isaac_sim/imu/data",
+        "ros": "/imu/data",
+        "type": "sensor_msgs/Imu",
+        "direction": "in"
+      },
+      {
+        "isaacsim": "/isaac_sim/odom",
+        "ros": "/odom",
+        "type": "nav_msgs/Odometry",
+        "direction": "in"
+      }
+    ],
+    "bridge_services": [
+      {
+        "isaacsim": "/isaac_sim/reset_simulation",
+        "ros": "/reset_simulation",
+        "type": "std_srvs/Empty"
+      }
+    ],
+    "bridge_actions": [
+      {
+        "isaacsim": "/isaac_sim/move_base",
+        "ros": "/move_base",
+        "type": "move_base_msgs/MoveBaseAction"
+      }
+    ]
+  }
+}

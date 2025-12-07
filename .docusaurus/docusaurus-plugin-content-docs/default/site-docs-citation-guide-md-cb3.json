@@ -1,0 +1,24 @@
+{
+  "id": "citation_guide",
+  "title": "Citation Workflow Guide",
+  "description": "This guide outlines the recommended citation workflow for the Physical AI & Humanoid Robotics textbook, ensuring consistent APA 7th edition formatting and seamless integration with MDX content.",
+  "source": "@site/docs/citation_guide.md",
+  "sourceDirName": ".",
+  "slug": "/citation_guide",
+  "permalink": "/physical-ai-textbook/docs/citation_guide",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/citation_guide.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Final Review Process Documentation",
+    "permalink": "/physical-ai-textbook/docs/final_review/final_review_process"
+  },
+  "next": {
+    "title": "Review Process for Physical AI & Humanoid Robotics Textbook",
+    "permalink": "/physical-ai-textbook/docs/review_process"
+  }
+}

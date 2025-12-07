@@ -1,0 +1,29 @@
+{
+  "id": "module1/chapter2",
+  "title": "The Humanoid Landscape 2025–2030",
+  "description": "This chapter provides an overview of the current state and projected future of humanoid robotics from 2025 to 2030. We will explore key players, emerging technologies, ethical considerations, and the potential impact of humanoids across various industries.",
+  "source": "@site/docs/module1/chapter2.mdx",
+  "sourceDirName": "module1",
+  "slug": "/module1/chapter2",
+  "permalink": "/physical-ai-textbook/docs/module1/chapter2",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module1/chapter2.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "chapter2",
+    "sidebar_position": 2,
+    "title": "The Humanoid Landscape 2025–2030"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Introduction to Physical AI and Embodied Intelligence",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter1"
+  },
+  "next": {
+    "title": "ROS 2 Architecture Deep Dive",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter3"
+  }
+}

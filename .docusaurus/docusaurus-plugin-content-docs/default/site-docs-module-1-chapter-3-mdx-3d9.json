@@ -1,0 +1,29 @@
+{
+  "id": "module1/chapter3",
+  "title": "ROS 2 Architecture Deep Dive",
+  "description": "This chapter provides a comprehensive overview of the Robot Operating System 2 (ROS 2) architecture, focusing on its core concepts: nodes, topics, services, and actions. We will explore how these components facilitate communication and coordination in robotic systems, particularly for humanoid robots.",
+  "source": "@site/docs/module1/chapter3.mdx",
+  "sourceDirName": "module1",
+  "slug": "/module1/chapter3",
+  "permalink": "/physical-ai-textbook/docs/module1/chapter3",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module1/chapter3.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "chapter3",
+    "sidebar_position": 3,
+    "title": "ROS 2 Architecture Deep Dive"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "The Humanoid Landscape 2025–2030",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter2"
+  },
+  "next": {
+    "title": "Building Real ROS 2 Packages in Python (rclpy)",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter4"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "module4/chapter14",
+  "title": "From Voice → Plan → Action",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module4/chapter14.mdx",
+  "sourceDirName": "module4",
+  "slug": "/module4/chapter14",
+  "permalink": "/physical-ai-textbook/docs/module4/chapter14",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module4/chapter14.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "chapter14",
+    "sidebar_position": 2,
+    "title": "From Voice → Plan → Action"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Vision-Language-Action Models",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter13"
+  },
+  "next": {
+    "title": "Capstone Project – Autonomous Humanoid from Spoken Command",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter15"
+  }
+}

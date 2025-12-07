@@ -1,0 +1,29 @@
+{
+  "id": "module3/chapter10",
+  "title": "Isaac ROS – Hardware-Accelerated Perception & Navigation",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module3/chapter10.mdx",
+  "sourceDirName": "module3",
+  "slug": "/module3/chapter10",
+  "permalink": "/physical-ai-textbook/docs/module3/chapter10",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module3/chapter10.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "chapter10",
+    "sidebar_position": 1,
+    "title": "Isaac ROS – Hardware-Accelerated Perception & Navigation"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Isaac Sim Integration – Physics, Rendering & Sensor Simulation",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter9"
+  },
+  "next": {
+    "title": "Bipedal Locomotion – ZMP → MPC → RL Walking Policies",
+    "permalink": "/physical-ai-textbook/docs/module3/chapter11"
+  }
+}

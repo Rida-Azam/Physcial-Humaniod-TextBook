@@ -1,0 +1,29 @@
+{
+  "id": "module1/chapter1",
+  "title": "Introduction to Physical AI and Embodied Intelligence",
+  "description": "This chapter introduces the fundamental concepts of Physical AI and embodied intelligence, exploring how robots perceive, reason, and act in the real world. We will cover the historical context, current trends, and future directions of this rapidly evolving field.",
+  "source": "@site/docs/module1/chapter1.mdx",
+  "sourceDirName": "module1",
+  "slug": "/module1/chapter1",
+  "permalink": "/physical-ai-textbook/docs/module1/chapter1",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module1/chapter1.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "chapter1",
+    "sidebar_position": 1,
+    "title": "Introduction to Physical AI and Embodied Intelligence"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Physical AI & Humanoid Robotics: A Complete Textbook for Building Embodied Intelligent Systems",
+    "permalink": "/physical-ai-textbook/docs/intro"
+  },
+  "next": {
+    "title": "The Humanoid Landscape 2025–2030",
+    "permalink": "/physical-ai-textbook/docs/module1/chapter2"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "module3/chapter12",
+  "title": "Dexterous Manipulation & Sim-to-Real Grasp Transfer",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module3/chapter12.mdx",
+  "sourceDirName": "module3",
+  "slug": "/module3/chapter12",
+  "permalink": "/physical-ai-textbook/docs/module3/chapter12",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module3/chapter12.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "chapter12",
+    "sidebar_position": 3,
+    "title": "Dexterous Manipulation & Sim-to-Real Grasp Transfer"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Bipedal Locomotion – ZMP → MPC → RL Walking Policies",
+    "permalink": "/physical-ai-textbook/docs/module3/chapter11"
+  },
+  "next": {
+    "title": "Vision-Language-Action Models",
+    "permalink": "/physical-ai-textbook/docs/module4/chapter13"
+  }
+}

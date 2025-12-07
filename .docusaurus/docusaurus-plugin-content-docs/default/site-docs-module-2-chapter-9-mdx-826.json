@@ -1,0 +1,29 @@
+{
+  "id": "module2/chapter9",
+  "title": "Isaac Sim Integration – Physics, Rendering & Sensor Simulation",
+  "description": "Learning Objectives",
+  "source": "@site/docs/module2/chapter9.mdx",
+  "sourceDirName": "module2",
+  "slug": "/module2/chapter9",
+  "permalink": "/physical-ai-textbook/docs/module2/chapter9",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/module2/chapter9.mdx",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "id": "chapter9",
+    "sidebar_position": 4,
+    "title": "Isaac Sim Integration – Physics, Rendering & Sensor Simulation"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Building High-Fidelity Environments & Sensor Simulation",
+    "permalink": "/physical-ai-textbook/docs/module2/chapter8"
+  },
+  "next": {
+    "title": "Isaac ROS – Hardware-Accelerated Perception & Navigation",
+    "permalink": "/physical-ai-textbook/docs/module3/chapter10"
+  }
+}

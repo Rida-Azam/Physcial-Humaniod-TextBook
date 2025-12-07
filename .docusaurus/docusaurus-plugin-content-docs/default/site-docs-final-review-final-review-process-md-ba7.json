@@ -1,0 +1,24 @@
+{
+  "id": "final_review/final_review_process",
+  "title": "Final Review Process Documentation",
+  "description": "Overview",
+  "source": "@site/docs/final_review/final_review_process.md",
+  "sourceDirName": "final_review",
+  "slug": "/final_review/final_review_process",
+  "permalink": "/physical-ai-textbook/docs/final_review/final_review_process",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-github-username/physical-ai-textbook/tree/main/docs/final_review/final_review_process.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Fact-Check Report for Physical AI & Humanoid Robotics Textbook",
+    "permalink": "/physical-ai-textbook/docs/final_review/fact_check_report"
+  },
+  "next": {
+    "title": "Citation Workflow Guide",
+    "permalink": "/physical-ai-textbook/docs/citation_guide"
+  }
+}

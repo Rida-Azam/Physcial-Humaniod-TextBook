@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash src/verification/verify_examples.sh)",
+      "Bash(npm run build)",
+      "Bash(npx docusaurus start --no-open)",
+      "Bash(ls docs/intro*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

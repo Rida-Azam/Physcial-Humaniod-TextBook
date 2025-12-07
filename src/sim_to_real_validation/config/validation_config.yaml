@@ -1,0 +1,174 @@
+# Configuration for Sim-to-Real Validation Framework
+
+# General settings
+general:
+  evaluation_name: "Humanoid Robotics Sim-to-Real Transfer Assessment"
+  evaluation_date: "2025-12-07"
+  evaluator: "Physical AI & Humanoid Robotics Course"
+  robot_platform: "Generic Humanoid"
+  simulation_environment: "Isaac Sim + Gazebo"
+  real_robot_environment: "Lab Environment"
+
+# Evaluation metrics and thresholds
+evaluation_metrics:
+  # Trajectory similarity metrics
+  trajectory_similarity:
+    position_accuracy:
+      threshold_meters: 0.05          # 5cm position accuracy threshold
+      rmse_threshold: 0.03           # 3cm RMSE threshold
+      max_error_threshold: 0.1       # 10cm maximum error threshold
+    orientation_accuracy:
+      threshold_radians: 0.1          # 0.1 rad (approx 5.7 deg) threshold
+      rmse_threshold: 0.05           # 0.05 rad RMSE threshold
+      max_error_threshold: 0.2       # 0.2 rad maximum error threshold
+    timing_accuracy:
+      threshold_seconds: 0.1          # 100ms timing accuracy threshold
+      correlation_threshold: 0.8      # 0.8 correlation threshold
+
+  # Control fidelity metrics
+  control_fidelity:
+    joint_position_accuracy:
+      threshold_radians: 0.035        # ~2 degree threshold
+      rmse_threshold: 0.017          # ~1 degree RMSE threshold
+    velocity_accuracy:
+      threshold_ratio: 0.1            # 10% velocity error threshold
+      rmse_threshold: 0.05           # 5% RMSE threshold
+    effort_accuracy:
+      threshold_ratio: 0.2            # 20% effort error threshold
+      rmse_threshold: 0.1            # 10% RMSE threshold
+
+  # Task performance metrics
+  task_performance:
+    success_rate_threshold: 0.8       # 80% success rate required
+    time_efficiency_threshold: 0.9    # 90% of simulation time efficiency
+    energy_efficiency_threshold: 1.2  # 120% of simulation energy (acceptable increase)
+
+  # Sensor fidelity metrics
+  sensor_fidelity:
+    camera_fidelity:
+      ssim_threshold: 0.7             # Structural Similarity Index
+      color_difference_threshold: 0.1 # Color difference in normalized space
+    imu_fidelity:
+      linear_acceleration_error: 0.1  # 0.1g threshold
+      angular_velocity_error: 0.05    # 0.05 rad/s threshold
+      orientation_error: 0.05         # 0.05 rad threshold
+
+# Validation thresholds
+validation_thresholds:
+  minimum_success_rate: 0.75          # 75% minimum success rate
+  maximum_acceptable_divergence: 0.25 # 25% maximum acceptable divergence
+  minimum_acceptable_correlation: 0.7 # 0.7 minimum correlation
+  maximum_position_error: 0.1         # 10cm maximum position error
+  maximum_orientation_error: 0.15     # 0.15 rad maximum orientation error
+
+# Assessment categories
+assessment_categories:
+  excellent:
+    success_rate: 0.9
+    position_error: 0.02
+    orientation_error: 0.05
+    correlation: 0.9
+  good:
+    success_rate: 0.8
+    position_error: 0.05
+    orientation_error: 0.1
+    correlation: 0.8
+  satisfactory:
+    success_rate: 0.7
+    position_error: 0.08
+    orientation_error: 0.15
+    correlation: 0.7
+  needs_improvement:
+    success_rate: 0.6
+    position_error: 0.15
+    orientation_error: 0.25
+    correlation: 0.6
+
+# Data processing settings
+data_processing:
+  trajectory_alignment_method: "dtw"  # Options: dtw, correlation, none
+  smoothing_filter_size: 5            # Size of smoothing filter (odd number)
+  outlier_removal: true               # Remove outliers beyond 3 std devs
+  outlier_threshold: 3.0              # Outlier threshold in std devs
+  interpolation_method: "linear"      # Options: linear, cubic, spline
+
+# Visualization settings
+visualization:
+  plot_style: "seaborn-v0_8-whitegrid"
+  figure_size: [12, 8]
+  dpi: 300
+  color_scheme: "viridis"
+  save_formats:
+    - "png"
+    - "svg"
+    - "pdf"
+  include_raw_data: false             # Whether to include raw data in plots
+
+# Reporting settings
+reporting:
+  output_directory: "evaluation_reports"
+  include_detailed_analysis: true
+  generate_visualizations: true
+  export_raw_data: false
+  report_format: "json"               # Options: json, yaml, md
+  detailed_statistics: true
+  confidence_intervals: true
+  comparison_plots: true
+
+# Performance settings
+performance:
+  max_trajectory_length: 10000        # Maximum trajectory length to process
+  batch_processing_size: 100          # Number of trajectories to process at once
+  parallel_processing: true           # Use parallel processing if available
+  max_workers: 4                      # Number of workers for parallel processing
+  memory_limit_gb: 8                  # Memory limit in GB
+
+# Logging settings
+logging:
+  level: "INFO"                       # Options: DEBUG, INFO, WARN, ERROR
+  file_output: true
+  console_output: true
+  log_file_path: "logs/sim_to_real_evaluation.log"
+  detailed_metrics: true
+
+# Task-specific parameters
+task_parameters:
+  manipulation_tasks:
+    success_volume_threshold: 0.02    # 2cm threshold for successful manipulation
+    orientation_importance: 0.3       # Weight of orientation in success calculation
+    position_importance: 0.7          # Weight of position in success calculation
+
+  locomotion_tasks:
+    step_accuracy_threshold: 0.05     # 5cm threshold for step accuracy
+    balance_maintanance_threshold: 0.1 # 0.1 rad threshold for balance maintenance
+    gait_similarity_threshold: 0.7    # 0.7 threshold for gait similarity
+
+  navigation_tasks:
+    path_efficiency_threshold: 0.8    # 80% path efficiency threshold
+    obstacle_avoidance_threshold: 0.9 # 90% obstacle avoidance success
+    goal_accuracy_threshold: 0.1      # 10cm goal accuracy threshold
+
+# Safety considerations
+safety:
+  enable_safety_checks: true
+  position_bounds:                    # Workspace bounds (x, y, z in meters)
+    x_min: -2.0
+    x_max: 2.0
+    y_min: -2.0
+    y_max: 2.0
+    z_min: 0.0
+    z_max: 2.0
+  velocity_limits:                    # Joint velocity limits (rad/s)
+    max: 5.0
+  effort_limits:                      # Joint effort limits (N*m)
+    max: 100.0
+
+# Experimental settings
+experimental:
+  enable_advanced_metrics: true
+  advanced_metrics:
+    - "spectral_analysis"
+    - "phase_space_reconstruction"
+    - "mutual_information"
+  enable_uncertainty_estimation: true
+  uncertainty_confidence_level: 0.95
