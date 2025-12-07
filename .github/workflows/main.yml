@@ -3,10 +3,10 @@ name: Deploy Physical AI Textbook to GitHub Pages
 on:
   push:
     branches:
-      - main  # change if your default branch is different
+      - main  # triggers deployment on pushes to main branch
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,14 +17,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '18'  # matches your package.json engines
 
       # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4. Make Docusaurus executable
-      - name: Fix Docusaurus permissions
+      # 4. Fix Docusaurus permissions
+      - name: Make Docusaurus executable
         run: chmod +x ./node_modules/.bin/docusaurus
 
       # 5. Build the site
@@ -35,5 +35,6 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
+          # Use either the default token (GITHUB_TOKEN) or your personal token (PAT_GITHUB)
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
