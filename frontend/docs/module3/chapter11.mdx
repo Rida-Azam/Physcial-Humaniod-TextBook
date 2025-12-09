@@ -1,0 +1,412 @@
+---
+id: chapter11
+sidebar_position: 2
+title: Bipedal Locomotion – ZMP → MPC → RL Walking Policies
+---
+
+# Chapter 11: Bipedal Locomotion – ZMP → MPC → RL Walking Policies
+
+## Learning Objectives
+
+- Understand the fundamentals of bipedal locomotion and stability
+- Compare Zero Moment Point (ZMP) control with Model Predictive Control (MPC)
+- Implement Reinforcement Learning (RL) approaches for walking policies
+- Design walking controllers for humanoid robots
+- Evaluate the trade-offs between different locomotion approaches
+
+## 11.1 Introduction to Bipedal Locomotion
+
+Bipedal locomotion is one of the most challenging problems in robotics, requiring sophisticated control algorithms to maintain balance while achieving forward motion. Unlike wheeled robots, bipedal robots have limited points of contact with the ground, making them inherently unstable and requiring continuous balance control.
+
+The key challenges in bipedal locomotion include:
+- Maintaining balance during dynamic motion
+- Managing transitions between single and double support phases
+- Handling external disturbances and uneven terrain
+- Optimizing energy efficiency while maintaining stability
+
+## 11.2 Zero Moment Point (ZMP) Control
+
+Zero Moment Point (ZMP) control is a classical approach to bipedal locomotion that focuses on maintaining the robot's center of pressure within the support polygon.
+
+### 11.2.1 ZMP Fundamentals
+
+The ZMP is defined as the point on the ground where the net moment of the ground reaction forces is zero. For stable locomotion, the ZMP must remain within the convex hull of the robot's feet (the support polygon).
+
+Mathematically, the ZMP is calculated as:
+```
+ZMP_x = (Σ(F_iz * x_i) - Σ(M_ix)) / Σ(F_iz)
+ZMP_y = (Σ(F_iz * y_i) - Σ(M_iy)) / Σ(F_iz)
+```
+
+Where F_iz are the vertical forces, (x_i, y_i) are the force application points, and M_ix, M_iy are the moments.
+
+### 11.2.2 ZMP-Based Walking Pattern Generation
+
+ZMP-based walking typically involves:
+1. **Preview Control**: Using future ZMP references to calculate optimal center of mass (CoM) trajectories
+2. **Inverted Pendulum Models**: Simplifying the robot to a point mass supported by a variable-length leg
+3. **Footstep Planning**: Pre-calculating footstep positions based on desired walking direction
+
+```python
+# Example ZMP controller implementation
+import numpy as np
+from scipy import signal
+import math
+
+class ZMPController:
+    def __init__(self, robot_mass, gravity=9.81, z_com=0.8):
+        self.mass = robot_mass
+        self.gravity = gravity
+        self.z_com = z_com  # Height of center of mass
+        self.omega = math.sqrt(gravity / z_com)
+
+        # Initialize state variables
+        self.com_x = 0.0
+        self.com_y = 0.0
+        self.com_z = z_com
+        self.com_dx = 0.0
+        self.com_dy = 0.0
+        self.com_dz = 0.0
+
+        # ZMP tracking
+        self.zmp_ref_x = 0.0
+        self.zmp_ref_y = 0.0
+
+    def update(self, dt, zmp_ref_x, zmp_ref_y):
+        """
+        Update ZMP controller with reference ZMP
+        """
+        # Update reference
+        self.zmp_ref_x = zmp_ref_x
+        self.zmp_ref_y = zmp_ref_y
+
+        # Calculate CoM trajectory based on ZMP reference
+        # Using the relationship: CoM_dd = omega^2 * (CoM - ZMP)
+        com_dd_x = self.omega**2 * (self.com_x - self.zmp_ref_x)
+        com_dd_y = self.omega**2 * (self.com_y - self.zmp_ref_y)
+
+        # Integrate to get velocity and position
+        self.com_dx += com_dd_x * dt
+        self.com_dy += com_dd_y * dt
+
+        self.com_x += self.com_dx * dt
+        self.com_y += self.com_dy * dt
+
+        # Return desired CoM position
+        return self.com_x, self.com_y, self.com_z
+
+# Example usage
+zmp_controller = ZMPController(robot_mass=50.0)
+```
+
+### 11.2.3 Advantages and Limitations of ZMP Control
+
+**Advantages:**
+- Well-established mathematical foundation
+- Proven stability properties
+- Computationally efficient for real-time control
+
+**Limitations:**
+- Assumes constant center of mass height
+- Limited adaptability to dynamic environments
+- Difficulty handling large disturbances
+
+## 11.3 Model Predictive Control (MPC) for Locomotion
+
+Model Predictive Control (MPC) offers a more flexible approach to bipedal locomotion by optimizing over a finite prediction horizon.
+
+### 11.3.1 MPC Fundamentals
+
+MPC solves an optimization problem at each time step:
+```
+min Σ(k=0 to N-1) l(x_k, u_k) + l_N(x_N)
+s.t. x_{k+1} = f(x_k, u_k)
+     g(x_k, u_k) ≤ 0
+```
+
+Where l is the stage cost, l_N is the terminal cost, and g represents constraints.
+
+### 11.3.2 MPC for Bipedal Walking
+
+In bipedal locomotion, MPC typically optimizes:
+- Center of mass trajectory
+- Footstep locations
+- Joint torques
+- Balance constraints
+
+```python
+# Example MPC-based walking controller
+import numpy as np
+from scipy.optimize import minimize
+
+class MPCLocomotionController:
+    def __init__(self, prediction_horizon=20, dt=0.1):
+        self.N = prediction_horizon  # Prediction horizon
+        self.dt = dt  # Time step
+        self.Q = np.eye(4)  # State cost matrix
+        self.R = np.eye(2)  # Control cost matrix
+        self.P = np.eye(4)  # Terminal cost matrix
+
+    def predict_dynamics(self, x, u):
+        """
+        Linearized dynamics model for CoM
+        x = [com_x, com_y, com_dx, com_dy]
+        u = [zmp_x, zmp_y]
+        """
+        A = np.array([
+            [1, 0, self.dt, 0],
+            [0, 1, 0, self.dt],
+            [self.dt, 0, 1, 0],
+            [0, self.dt, 0, 1]
+        ])
+
+        B = np.array([
+            [0, 0],
+            [0, 0],
+            [-self.dt, 0],
+            [0, -self.dt]
+        ])
+
+        return A @ x + B @ u
+
+    def cost_function(self, u_flat, x0, x_ref):
+        """
+        Cost function for MPC optimization
+        """
+        total_cost = 0.0
+        x = x0.copy()
+
+        # Reshape control sequence
+        U = u_flat.reshape((self.N, 2))
+
+        for k in range(self.N):
+            # Predict next state
+            x = self.predict_dynamics(x, U[k])
+
+            # State error cost
+            state_error = x - x_ref[k]
+            total_cost += state_error.T @ self.Q @ state_error
+
+            # Control effort cost
+            total_cost += U[k].T @ self.R @ U[k]
+
+        # Terminal cost
+        state_error = x - x_ref[self.N]
+        total_cost += state_error.T @ self.P @ state_error
+
+        return total_cost
+
+    def solve_mpc(self, x0, x_ref):
+        """
+        Solve MPC problem
+        """
+        # Initial guess for control sequence
+        u_init = np.zeros(2 * self.N)
+
+        # Optimization bounds (ZMP limits)
+        bounds = [(-0.1, 0.1), (-0.1, 0.1)] * self.N  # Example ZMP limits
+
+        # Solve optimization problem
+        result = minimize(
+            self.cost_function,
+            u_init,
+            args=(x0, x_ref),
+            method='SLSQP',
+            bounds=bounds
+        )
+
+        if result.success:
+            U_opt = result.x.reshape((self.N, 2))
+            return U_opt[0]  # Return first control input
+        else:
+            # Return zero control if optimization fails
+            return np.array([0.0, 0.0])
+
+# Example usage
+mpc_controller = MPCLocomotionController()
+```
+
+## 11.4 Reinforcement Learning for Walking Policies
+
+Reinforcement Learning (RL) offers a data-driven approach to bipedal locomotion that can learn complex walking behaviors through interaction with the environment.
+
+### 11.4.1 RL Framework for Locomotion
+
+The RL framework for bipedal locomotion typically involves:
+- **State Space**: Joint positions, velocities, IMU readings, contact states
+- **Action Space**: Joint torques, desired joint positions/velocities
+- **Reward Function**: Balance maintenance, forward progress, energy efficiency
+- **Environment**: Simulation or real robot
+
+### 11.4.2 Deep Reinforcement Learning Approaches
+
+Deep RL algorithms commonly used for bipedal locomotion include:
+- **Proximal Policy Optimization (PPO)**
+- **Soft Actor-Critic (SAC)**
+- **Deep Deterministic Policy Gradient (DDPG)**
+
+```python
+# Example RL environment for bipedal walking
+import gym
+from gym import spaces
+import numpy as np
+
+class BipedalWalkingEnv(gym.Env):
+    def __init__(self):
+        super(BipedalWalkingEnv, self).__init__()
+
+        # Define action and observation spaces
+        self.action_space = spaces.Box(
+            low=-1.0, high=1.0, shape=(12,), dtype=np.float32  # 12 joint torques
+        )
+
+        # Observation: joint positions, velocities, IMU readings, etc.
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(24,), dtype=np.float32
+        )
+
+        # Robot parameters
+        self.max_steps = 1000
+        self.current_step = 0
+
+    def reset(self):
+        # Reset robot to initial configuration
+        self.current_step = 0
+        observation = self._get_observation()
+        return observation
+
+    def step(self, action):
+        # Apply action to robot simulation
+        self._apply_action(action)
+
+        # Update simulation
+        self._update_simulation()
+
+        # Calculate reward
+        reward = self._calculate_reward()
+
+        # Check termination conditions
+        terminated = self._check_termination()
+        truncated = self.current_step >= self.max_steps
+
+        observation = self._get_observation()
+        info = {}
+
+        self.current_step += 1
+        return observation, reward, terminated, truncated, info
+
+    def _get_observation(self):
+        # Return current robot state (simplified)
+        obs = np.random.random(24).astype(np.float32)  # Placeholder
+        return obs
+
+    def _apply_action(self, action):
+        # Apply joint torques to robot (simulation)
+        pass
+
+    def _update_simulation(self):
+        # Update physics simulation
+        pass
+
+    def _calculate_reward(self):
+        # Calculate reward based on forward progress, balance, etc.
+        reward = 0.0
+
+        # Forward progress reward
+        # Balance maintenance reward
+        # Energy efficiency penalty
+        # Survival bonus
+
+        return reward
+
+    def _check_termination(self):
+        # Check if robot has fallen or reached goal
+        return False
+
+# Example training loop (pseudocode)
+def train_walking_policy():
+    env = BipedalWalkingEnv()
+
+    # Initialize RL agent (e.g., PPO)
+    # agent = PPO(env)
+
+    # Training loop
+    for episode in range(1000):
+        obs = env.reset()
+        total_reward = 0
+
+        while True:
+            action = agent.get_action(obs)  # Get action from policy
+            next_obs, reward, terminated, truncated, info = env.step(action)
+            agent.update(obs, action, reward, next_obs, terminated)  # Update policy
+
+            obs = next_obs
+            total_reward += reward
+
+            if terminated or truncated:
+                break
+
+        print(f"Episode {episode}, Total Reward: {total_reward}")
+```
+
+## 11.5 Comparison of Approaches
+
+| Approach | Advantages | Disadvantages | Use Case |
+|----------|------------|---------------|----------|
+| ZMP Control | Proven stability, computationally efficient | Limited adaptability, rigid assumptions | Precise, predictable walking on flat terrain |
+| MPC | Flexible, handles constraints well | Computationally intensive | Complex terrain, obstacle avoidance |
+| RL | Learns complex behaviors, adaptable | Requires extensive training, may be unstable | Dynamic environments, complex behaviors |
+
+## 11.6 Implementation Example: Hybrid Controller
+
+A practical approach often combines multiple methods:
+
+```python
+class HybridWalkingController:
+    def __init__(self):
+        # ZMP controller for basic stability
+        self.zmp_controller = ZMPController(robot_mass=50.0)
+
+        # MPC for trajectory optimization
+        self.mpc_controller = MPCLocomotionController()
+
+        # RL policy for adaptive behaviors
+        self.rl_policy = None  # Loaded from trained model
+
+    def compute_walking_command(self, robot_state, desired_velocity):
+        # Use ZMP for basic balance maintenance
+        zmp_ref = self._compute_zmp_reference(desired_velocity)
+
+        # Use MPC for optimal trajectory planning
+        mpc_command = self.mpc_controller.solve_mpc(
+            robot_state, zmp_ref
+        )
+
+        # Use RL for adaptive responses to disturbances
+        if self.rl_policy:
+            rl_command = self.rl_policy.get_action(robot_state)
+            # Blend MPC and RL commands
+            final_command = 0.7 * mpc_command + 0.3 * rl_command
+        else:
+            final_command = mpc_command
+
+        return final_command
+
+    def _compute_zmp_reference(self, desired_velocity):
+        # Compute ZMP reference based on desired velocity
+        # This is a simplified example
+        zmp_x_ref = desired_velocity[0] * 0.1  # Proportional to forward velocity
+        zmp_y_ref = desired_velocity[1] * 0.1  # Proportional to lateral velocity
+        return np.array([zmp_x_ref, zmp_y_ref])
+```
+
+## 11.7 Exercises
+
+1. Implement a simple ZMP controller for a 2D bipedal model.
+2. Compare the stability of ZMP and MPC controllers in simulation.
+3. Train a basic RL policy for bipedal walking using a physics simulator.
+4. Design a hybrid controller that combines ZMP and RL approaches.
+
+## 11.8 Chapter Summary
+
+Bipedal locomotion requires sophisticated control strategies to maintain balance while achieving desired motion. ZMP control provides a mathematically sound foundation for stable walking, MPC offers flexibility for complex tasks, and RL enables adaptive behaviors through learning. A hybrid approach often provides the best balance of stability, adaptability, and performance for real-world humanoid robots.

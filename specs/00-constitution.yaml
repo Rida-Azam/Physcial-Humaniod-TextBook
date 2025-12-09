@@ -1,0 +1,16 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Constitution
+# Links to main constitution
+
+spec:
+  id: "00-constitution"
+  name: "Constitution and Project Overview"
+  description: "Links to the main project constitution and defines overall project structure"
+  version: "1.0.0"
+  depends_on: []
+  linked_files:
+    - ".specify/memory/constitution.md"
+    - "sp-constitution.yaml"
+
+implementation_status: "completed"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

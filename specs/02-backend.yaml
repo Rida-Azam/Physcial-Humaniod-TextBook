@@ -1,0 +1,32 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Backend
+# FastAPI backend with Qdrant, Neon, and OpenAI integration
+
+spec:
+  id: "02-backend"
+  name: "Backend Implementation"
+  description: "FastAPI backend with RAG services, database integration, and AI agents"
+  version: "1.0.0"
+  depends_on: ["00-constitution"]
+  components:
+    - "FastAPI application"
+    - "Qdrant vector database integration"
+    - "Neon PostgreSQL database"
+    - "RAG query endpoints"
+    - "Translation services"
+    - "Personalization services"
+    - "OpenAI Agents framework"
+    - "Authentication integration"
+
+  files:
+    - "backend/app/main.py"
+    - "backend/app/routers/query.py"
+    - "backend/app/routers/translate.py"
+    - "backend/app/routers/personalize.py"
+    - "backend/app/services/rag.py"
+    - "backend/app/services/qdrant.py"
+    - "backend/app/services/neon.py"
+    - "backend/app/agents/"
+
+implementation_status: "planned"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

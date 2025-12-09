@@ -1,0 +1,1254 @@
+---
+id: chapter8
+sidebar_position: 3
+title: Building High-Fidelity Environments & Sensor Simulation
+---
+
+# Chapter 8: Building High-Fidelity Environments & Sensor Simulation
+
+## Learning Objectives
+
+By the end of this chapter, students will be able to:
+- Design and create realistic simulation environments for humanoid robots
+- Implement high-fidelity sensor simulation including cameras, IMUs, and force sensors
+- Apply domain randomization techniques to improve sim-to-real transfer
+- Create diverse environments that match real-world deployment scenarios
+- Validate simulation environments against real-world conditions
+- Optimize simulation performance while maintaining environmental fidelity
+
+## 8.1 Introduction to High-Fidelity Environments
+
+Creating high-fidelity simulation environments is crucial for humanoid robotics, as these robots must operate in complex, unstructured human environments. The simulation environment must accurately represent:
+
+- **Visual Appearance**: Photorealistic rendering for vision-based perception
+- **Physical Properties**: Accurate physics for interaction modeling
+- **Sensor Characteristics**: Realistic sensor noise and limitations
+- **Environmental Dynamics**: Moving objects, changing conditions, etc.
+
+### 8.1.1 Importance of Environmental Fidelity
+
+Environmental fidelity directly impacts the success of sim-to-real transfer:
+
+- **Visual Fidelity**: Affects vision-based perception and learning
+- **Physical Fidelity**: Influences locomotion and manipulation policies
+- **Sensor Fidelity**: Impacts state estimation and control accuracy
+- **Temporal Fidelity**: Affects real-time performance and reaction times
+
+### 8.1.2 Fidelity vs. Performance Trade-offs
+
+When designing simulation environments, consider:
+
+- **Computational Cost**: Higher fidelity often means higher computational requirements
+- **Training Efficiency**: Balance between realism and training speed
+- **Transfer Quality**: Ensure fidelity improvements actually help real-world performance
+- **Development Time**: More complex environments require more development effort
+
+## 8.2 Environment Design Principles
+
+### 8.2.1 Realistic Scene Construction
+
+Creating realistic environments requires attention to:
+
+- **Geometric Accuracy**: Precise representation of real-world spaces
+- **Material Properties**: Accurate appearance and physics properties
+- **Lighting Conditions**: Realistic lighting for vision systems
+- **Dynamic Elements**: Moving objects and changing conditions
+
+### 8.2.2 Modular Environment Design
+
+```python
+# Example modular environment design for Isaac Sim
+import omni
+from pxr import UsdGeom, Sdf
+from omni.isaac.core.utils.stage import add_reference_to_stage
+from omni.isaac.core.utils.prims import get_prim_at_path
+import numpy as np
+
+class ModularEnvironmentBuilder:
+    """Modular system for building simulation environments"""
+
+    def __init__(self):
+        self.environment_modules = {
+            "floors": {
+                "wood": "/Isaac/Environments/Simple_Rooms/wood_plane.usd",
+                "tile": "/Isaac/Environments/Simple_Rooms/tile_plane.usd",
+                "carpet": "/Isaac/Environments/Simple_Rooms/carpet_plane.usd",
+                "concrete": "/Isacs/Environments/Simple_Rooms/concrete_plane.usd"
+            },
+            "furniture": {
+                "chair": "/Isaac/Props/Small_Table/small_table.usd",
+                "table": "/Isaac/Props/Chair/chair.usd",
+                "shelf": "/Isaac/Props/Shelf/shelf.usd",
+                "cabinet": "/Isaac/Props/Cabinet/cabinet.usd"
+            },
+            "obstacles": {
+                "box": "/Isaac/Props/Box/small.urdf",
+                "cylinder": "/Isaac/Props/Cylinder/cylinder.usdf",
+                "cone": "/Isaac/Props/Cone/cone.usd"
+            }
+        }
+
+    def build_room_environment(self, room_type="office", size=(5.0, 5.0)):
+        """Build a room-based environment"""
+        # Create room boundary
+        self._create_room_boundary(size)
+
+        # Add floor based on room type
+        floor_type = self._select_floor_type(room_type)
+        self._add_floor(floor_type, size)
+
+        # Add furniture based on room type
+        furniture_config = self._get_furniture_config(room_type)
+        self._add_furniture(furniture_config, size)
+
+        # Add lighting
+        self._add_lighting(room_type)
+
+    def _create_room_boundary(self, size):
+        """Create walls for the room"""
+        # Create walls using plane prims
+        wall_thickness = 0.1
+        height = 3.0
+
+        # Wall positions
+        walls = [
+            {"name": "wall_front", "size": (size[0], wall_thickness, height), "pos": (0, -size[1]/2, height/2)},
+            {"name": "wall_back", "size": (size[0], wall_thickness, height), "pos": (0, size[1]/2, height/2)},
+            {"name": "wall_left", "size": (wall_thickness, size[1], height), "pos": (-size[0]/2, 0, height/2)},
+            {"name": "wall_right", "size": (wall_thickness, size[1], height), "pos": (size[0]/2, 0, height/2)}
+        ]
+
+        for wall in walls:
+            # Add wall to stage
+            wall_path = f"/World/{wall['name']}"
+            wall_geom = UsdGeom.Cube.Define(self.stage, wall_path)
+            wall_geom.CreateSizeAttr(wall['size'])
+            wall_geom.AddTranslateOp().Set(wall['pos'])
+
+    def _select_floor_type(self, room_type):
+        """Select appropriate floor type for room"""
+        floor_mapping = {
+            "office": "tile",
+            "living_room": "wood",
+            "kitchen": "tile",
+            "bedroom": "carpet",
+            "industrial": "concrete"
+        }
+        return floor_mapping.get(room_type, "tile")
+
+    def _get_furniture_config(self, room_type):
+        """Get furniture configuration for room type"""
+        furniture_configs = {
+            "office": [
+                {"type": "chair", "position": (-1.0, 0.0, 0.0), "rotation": (0, 0, 0, 1)},
+                {"type": "table", "position": (-1.0, 0.0, 0.0), "rotation": (0, 0, 0, 1)},
+                {"type": "shelf", "position": (1.5, 1.0, 0.0), "rotation": (0, 0, 0, 1)}
+            ],
+            "living_room": [
+                {"type": "chair", "position": (-1.0, -1.0, 0.0), "rotation": (0, 0, 0, 1)},
+                {"type": "chair", "position": (-1.0, 1.0, 0.0), "rotation": (0, 0, 0, 1)},
+                {"type": "table", "position": (0.0, 0.0, 0.0), "rotation": (0, 0, 0, 1)}
+            ],
+            "kitchen": [
+                {"type": "cabinet", "position": (0.0, -2.0, 0.0), "rotation": (0, 0, 0, 1)},
+                {"type": "table", "position": (0.0, 0.0, 0.0), "rotation": (0, 0, 0, 1)}
+            ]
+        }
+        return furniture_configs.get(room_type, [])
+
+    def _add_furniture(self, furniture_config, room_size):
+        """Add furniture to environment"""
+        for i, furniture in enumerate(furniture_config):
+            # Check bounds
+            pos = furniture['position']
+            if (abs(pos[0]) > room_size[0]/2 - 0.5 or
+                abs(pos[1]) > room_size[1]/2 - 0.5):
+                print(f"Furniture position {pos} out of bounds for room size {room_size}")
+                continue
+
+            # Add furniture to stage
+            furniture_path = f"/World/Furniture/furniture_{i}"
+            add_reference_to_stage(
+                usd_path=self.environment_modules["furniture"][furniture["type"]],
+                prim_path=furniture_path
+            )
+
+            # Set position and rotation
+            prim = get_prim_at_path(furniture_path)
+            prim.GetAttribute("xformOp:translate").Set(pos)
+            prim.GetAttribute("xformOp:orient").Set(furniture["rotation"])
+
+    def _add_lighting(self, room_type):
+        """Add appropriate lighting for room type"""
+        # Add overhead lights
+        for i in range(2):
+            light_path = f"/World/Light/light_{i}"
+            light = UsdGeom.Sphere.Define(self.stage, light_path)
+            light.CreateRadiusAttr(0.1)
+
+            # Position lights
+            x_pos = -1.0 + i * 2.0
+            light.AddTranslateOp().Set((x_pos, 0.0, 2.5))
+
+            # Add light emission (in a real implementation)
+            # light.GetAttribute("emissiveColor").Set((1.0, 1.0, 1.0))
+
+# Example usage
+env_builder = ModularEnvironmentBuilder()
+env_builder.build_room_environment("office", (6.0, 4.0))
+```
+
+### 8.2.3 Dynamic Environment Elements
+
+```python
+# Dynamic environment elements for increased realism
+class DynamicEnvironmentElements:
+    """Add dynamic elements to environments"""
+
+    def __init__(self):
+        self.dynamic_objects = []
+        self.environment_conditions = {
+            "lighting": {
+                "intensity_range": (0.5, 1.5),
+                "temperature_range": (3000, 6500),  # Kelvin
+                "shadow_softness": (0.1, 0.5)
+            },
+            "weather": {
+                "wind_speed_range": (0.0, 5.0),  # m/s
+                "precipitation": False,
+                "fog_density": (0.0, 0.1)
+            },
+            "objects": {
+                "movable_objects": True,
+                "deformable_objects": False,
+                "articulated_objects": True
+            }
+        }
+
+    def add_dynamic_objects(self, object_config):
+        """Add dynamic objects to environment"""
+        # Create objects with realistic dynamics
+        for obj in object_config:
+            if obj["movable"]:
+                self._make_object_movable(obj)
+            if obj["articulated"]:
+                self._add_joints(obj)
+
+    def add_weather_effects(self, weather_config):
+        """Add weather-related effects"""
+        # In Isaac Sim, this would involve:
+        # - Particle systems for precipitation
+        # - Wind forces
+        # - Atmospheric effects
+        pass
+
+    def add_lighting_variations(self, lighting_config):
+        """Add lighting variations"""
+        # Modify light intensities and colors
+        # Add shadows and reflections
+        pass
+```
+
+## 8.3 Sensor Simulation Fundamentals
+
+### 8.3.1 Camera Simulation
+
+Realistic camera simulation is crucial for vision-based humanoid systems:
+
+```python
+# Camera simulation parameters
+camera_simulation_config = {
+    "rgb_camera": {
+        "resolution": [640, 480],
+        "fov": 60,  # Degrees
+        "near_clip": 0.1,  # Meters
+        "far_clip": 100.0,  # Meters
+        "sensor_tilt": 0.0,  # Radians
+        "mounting_height": 1.5,  # Meters above ground
+        "noise": {
+            "gaussian_std": 0.01,  # Standard deviation of Gaussian noise
+            "poisson_multiplier": 0.001,  # Poisson noise multiplier
+            "dropout_probability": 0.001  # Pixel dropout probability
+        },
+        "distortion": {
+            "k1": -0.1,  # Radial distortion coefficients
+            "k2": 0.02,
+            "p1": 0.0,   # Tangential distortion coefficients
+            "p2": 0.0
+        }
+    },
+    "depth_camera": {
+        "resolution": [640, 480],
+        "fov": 60,
+        "near_clip": 0.1,
+        "far_clip": 10.0,
+        "depth_noise_std": 0.01,  # Meters
+        "invalid_depth_value": 0.0
+    },
+    "lidar": {
+        "type": "ray_based",  # Or "sweep_based"
+        "samples": {
+            "horizontal": 1024,
+            "vertical": 64
+        },
+        "range": {
+            "min": 0.1,  # Meters
+            "max": 25.0  # Meters
+        },
+        "rotation_rates": {
+            "horizontal": 10.0,  # Hz
+            "vertical": 2.0    # Hz
+        },
+        "noise": {
+            "range_std": 0.01,  # Meters
+            "angular_std": 0.001  # Radians
+        }
+    }
+}
+
+# Example camera implementation
+def create_realistic_camera(stage, camera_path, config):
+    """Create a realistic camera in Isaac Sim"""
+    from omni.isaac.sensor import Camera
+
+    # Create camera
+    camera = Camera(
+        prim_path=camera_path,
+        frequency=config["rgb_camera"]["fov"],
+        resolution=config["rgb_camera"]["resolution"]
+    )
+
+    # Apply noise parameters
+    camera.add_noise_params(
+        gaussian_std=config["rgb_camera"]["noise"]["gaussian_std"],
+        poisson_multiplier=config["rgb_camera"]["noise"]["poisson_multiplier"],
+        dropout_probability=config["rgb_camera"]["noise"]["dropout_probability"]
+    )
+
+    # Apply distortion parameters
+    camera.set_distortion_params(
+        k1=config["rgb_camera"]["distortion"]["k1"],
+        k2=config["rgb_camera"]["distortion"]["k2"],
+        p1=config["rgb_camera"]["distortion"]["p1"],
+        p2=config["rgb_camera"]["distortion"]["p2"]
+    )
+
+    return camera
+```
+
+### 8.3.2 IMU Simulation
+
+```python
+# IMU simulation parameters
+imu_simulation_config = {
+    "accelerometer": {
+        "range": 16.0,  # g (Earth gravities)
+        "resolution": 1e-6,  # g per LSB
+        "noise_density": 100.0e-6,  # g/sqrt(Hz)
+        "random_walk": 1.0e-6,  # g/s^2/sqrt(Hz)
+        "bias_instability": 5.0e-6,  # g
+        "turn_on_bias_sigma": 20.0e-6  # g
+    },
+    "gyroscope": {
+        "range": 2000.0,  # deg/s
+        "resolution": 0.001,  # deg/s per LSB
+        "noise_density": 0.01,  # deg/s/sqrt(Hz)
+        "random_walk": 0.0038,  # deg/s^2/sqrt(Hz)
+        "bias_instability": 10.0,  # deg/hour/sqrt(Hz)
+        "turn_on_bias_sigma": 0.5  # deg/s
+    },
+    "magnetometer": {
+        "range": 1300.0,  # microTesla
+        "resolution": 0.1,  # microTesla per LSB
+        "noise_density": 100.0,  # nT/sqrt(Hz)
+        "hard_iron_distortion": [0.0, 0.0, 0.0],  # microTesla
+        "soft_iron_matrix": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    },
+    "sensor_mounting": {
+        "position": [0.0, 0.0, 0.0],  # Relative to body frame
+        "orientation": [0.0, 0.0, 0.0, 1.0],  # Quaternion
+        "alignment_errors": {
+            "position_std": 0.001,  # Meters
+            "angle_std": 0.001  # Radians
+        }
+    }
+}
+
+# Example IMU simulation
+def create_realistic_imu(stage, imu_path, config):
+    """Create a realistic IMU in Isaac Sim"""
+    from omni.isaac.sensor import IMU
+
+    # Create IMU
+    imu = IMU(
+        prim_path=imu_path,
+        frequency=100  # 100 Hz sampling rate
+    )
+
+    # Apply noise models based on configuration
+    imu.set_noise_params(
+        accel_noise_density=config["accelerometer"]["noise_density"],
+        gyro_noise_density=config["gyroscope"]["noise_density"],
+        accel_random_walk=config["accelerometer"]["random_walk"],
+        gyro_random_walk=config["gyroscope"]["random_walk"],
+        accel_bias_instability=config["accelerometer"]["bias_instability"],
+        gyro_bias_instability=config["gyroscope"]["bias_instability"]
+    )
+
+    return imu
+```
+
+### 8.3.3 Force/Torque Sensor Simulation
+
+```python
+# Force/Torque sensor simulation
+ft_sensor_simulation_config = {
+    "wrench_sensor": {
+        "measurement_range": {
+            "force": [500.0, 500.0, 500.0],  # [Fx, Fy, Fz] in Newtons
+            "torque": [50.0, 50.0, 50.0]    # [Tx, Ty, Tz] in Nm
+        },
+        "resolution": {
+            "force": [0.01, 0.01, 0.01],   # Newtons per LSB
+            "torque": [0.001, 0.001, 0.001] # Nm per LSB
+        },
+        "noise": {
+            "force_std": [0.1, 0.1, 0.1],   # Newtons
+            "torque_std": [0.01, 0.01, 0.01] # Nm
+        },
+        "bandwidth": 1000,  # Hz
+        "temperature_drift": {
+            "force_ppm_per_celsius": 50,  # ppm/°C
+            "torque_ppm_per_celsius": 100  # ppm/°C
+        }
+    },
+    "contact_sensors": {
+        "contact_detection_threshold": 1.0,  # Newtons
+        "contact_normal_accuracy": 0.01,     # Radians
+        "contact_location_accuracy": 0.001,  # Meters
+        "slip_detection": True,
+        "friction_estimation": True
+    }
+}
+```
+
+## 8.4 Domain Randomization Techniques
+
+### 8.4.1 Visual Domain Randomization
+
+Visual domain randomization helps improve the robustness of vision-based systems:
+
+```python
+# Visual domain randomization parameters
+visual_domain_randomization_config = {
+    "appearance_randomization": {
+        "textures": {
+            "brightness_range": (0.5, 1.5),
+            "contrast_range": (0.8, 1.2),
+            "saturation_range": (0.5, 1.5),
+            "hue_range": (-0.1, 0.1)
+        },
+        "materials": {
+            "roughness_range": (0.1, 0.9),
+            "metallic_range": (0.0, 0.5),
+            "specular_range": (0.1, 1.0)
+        },
+        "lighting": {
+            "intensity_range": (0.3, 2.0),
+            "temperature_range": (3000, 8000),  # Kelvin
+            "direction_deviation": (0.0, 0.5)   # Radians
+        }
+    },
+    "geometric_randomization": {
+        "object_poses": {
+            "translation_std": (0.05, 0.05, 0.02),  # Meters
+            "rotation_std": (0.1, 0.1, 0.1)        # Radians
+        },
+        "object_scales": {
+            "uniform_range": (0.9, 1.1),           # Scale factor
+            "nonuniform_range": (0.95, 1.05)       # For anisotropic scaling
+        }
+    },
+    "sensor_randomization": {
+        "camera_intrinsics": {
+            "focal_length_range": (0.9, 1.1),      # Factor
+            "principal_point_range": (-0.05, 0.05) # Normalized coordinates
+        },
+        "distortion_coefficients": {
+            "k1_range": (-0.5, 0.5),
+            "k2_range": (-0.1, 0.1),
+            "p1_range": (-0.001, 0.001),
+            "p2_range": (-0.001, 0.001)
+        }
+    }
+}
+
+# Implementation of visual domain randomization
+class VisualDomainRandomizer:
+    """Apply visual domain randomization to Isaac Sim environments"""
+
+    def __init__(self, config):
+        self.config = config
+        self.randomization_schedule = self._create_schedule()
+
+    def _create_schedule(self):
+        """Create schedule for when to randomize parameters"""
+        # Linear schedule: randomize more as training progresses
+        schedule = {
+            "start_percentage": 0.0,    # Start with no randomization
+            "end_percentage": 1.0,      # End with full randomization
+            "schedule_length": 1000000  # Total training steps
+        }
+        return schedule
+
+    def randomize_environment(self, step_count, stage):
+        """Apply randomization to environment"""
+        # Calculate randomization strength based on training progress
+        progress = min(step_count / self.randomization_schedule["schedule_length"], 1.0)
+        strength = self.randomization_schedule["start_percentage"] + \
+                  progress * (self.randomization_schedule["end_percentage"] -
+                             self.randomization_schedule["start_percentage"])
+
+        # Apply appearance randomization
+        if np.random.random() < strength:
+            self._randomize_appearance(stage)
+
+        # Apply geometric randomization
+        if np.random.random() < strength * 0.5:  # Less frequent
+            self._randomize_geometry(stage)
+
+    def _randomize_appearance(self, stage):
+        """Randomize visual appearance of objects"""
+        # Randomize textures
+        for prim_path in self._get_all_texture_prims(stage):
+            if np.random.random() < 0.8:  # 80% chance to randomize
+                # Apply brightness, contrast, saturation changes
+                brightness = np.random.uniform(*self.config["appearance_randomization"]["textures"]["brightness_range"])
+                contrast = np.random.uniform(*self.config["appearance_randomization"]["textures"]["contrast_range"])
+                saturation = np.random.uniform(*self.config["appearance_randomization"]["textures"]["saturation_range"])
+
+                # Apply changes to material properties
+                self._modify_material_properties(prim_path, brightness, contrast, saturation)
+
+        # Randomize lighting
+        for light_path in self._get_all_lights(stage):
+            intensity_factor = np.random.uniform(*self.config["appearance_randomization"]["lighting"]["intensity_range"])
+            temperature = np.random.uniform(*self.config["appearance_randomization"]["lighting"]["temperature_range"])
+
+            # Apply lighting changes
+            self._modify_light_properties(light_path, intensity_factor, temperature)
+
+    def _randomize_geometry(self, stage):
+        """Randomize geometric properties of objects"""
+        # Randomize object poses
+        for object_path in self._get_moveable_objects(stage):
+            if np.random.random() < 0.3:  # 30% chance to move each object
+                # Add small random translation and rotation
+                trans_change = np.random.normal(
+                    scale=self.config["geometric_randomization"]["object_poses"]["translation_std"]
+                )
+                rot_change = np.random.normal(
+                    scale=self.config["geometric_randomization"]["object_poses"]["rotation_std"]
+                )
+
+                # Apply transformation changes
+                self._apply_pose_change(object_path, trans_change, rot_change)
+
+    def _get_all_texture_prims(self, stage):
+        """Get all prims with texture properties"""
+        # Implementation would traverse the USD stage to find textured objects
+        return []  # Placeholder
+
+    def _get_all_lights(self, stage):
+        """Get all light prims"""
+        # Implementation would find all light sources
+        return []  # Placeholder
+
+    def _get_moveable_objects(self, stage):
+        """Get all moveable objects"""
+        # Implementation would find all moveable objects
+        return []  # Placeholder
+```
+
+### 8.4.2 Physical Domain Randomization
+
+Physical domain randomization improves sim-to-real transfer for dynamics:
+
+```python
+# Physical domain randomization parameters
+physical_domain_randomization_config = {
+    "dynamics_randomization": {
+        "mass": {
+            "multiplier_range": (0.8, 1.2),      # Mass scaling factor
+            "distribution": "uniform"            # uniform, normal, log_normal
+        },
+        "inertia": {
+            "multiplier_range": (0.8, 1.2),      # Inertia scaling factor
+            "distribution": "uniform"
+        },
+        "friction": {
+            "static_range": (0.3, 1.0),          # Static friction range
+            "dynamic_range": (0.2, 0.8),         # Dynamic friction range
+            "distribution": "uniform"
+        },
+        "restitution": {
+            "range": (0.0, 0.3),                 # Coefficient of restitution
+            "distribution": "uniform"
+        }
+    },
+    "actuator_randomization": {
+        "gear_ratios": {
+            "multiplier_range": (0.95, 1.05),    # Gear ratio scaling
+            "distribution": "normal"
+        },
+        "torque_limits": {
+            "multiplier_range": (0.9, 1.0),      # Torque limit scaling
+            "distribution": "uniform"
+        },
+        "velocity_limits": {
+            "multiplier_range": (0.9, 1.1),      # Velocity limit scaling
+            "distribution": "uniform"
+        },
+        "delay": {
+            "range_ms": (1.0, 10.0),             # Command delay in ms
+            "distribution": "uniform"
+        },
+        "noise": {
+            "torque_std_range": (0.001, 0.01),   # Torque noise standard deviation
+            "position_std_range": (0.0001, 0.001) # Position noise standard deviation
+        }
+    },
+    "environment_randomization": {
+        "gravity": {
+            "range": (9.7, 9.9),                 # Gravity magnitude in m/s^2
+            "direction_deviation": (0.0, 0.01)   # Deviation from z-axis in radians
+        },
+        "ground_properties": {
+            "slope_range": (-0.1, 0.1),          # Ground slope in radians
+            "roughness_range": (0.0, 0.01),      # Ground roughness in meters
+            "compliance_range": (1e-6, 1e-4)     # Ground compliance
+        }
+    }
+}
+```
+
+## 8.5 Creating Diverse Environments
+
+### 8.5.1 Indoor Environment Variants
+
+```python
+# Configuration for different indoor environments
+indoor_environment_configs = {
+    "home_environment": {
+        "layout": {
+            "rooms": ["living_room", "kitchen", "bedroom", "bathroom"],
+            "corridors": True,
+            "doorways": True
+        },
+        "furniture": {
+            "common_items": ["chair", "table", "couch", "bed", "dresser"],
+            "density": 0.3,  # 30% of available space occupied
+            "variability": 0.7  # High variability in arrangement
+        },
+        "lighting": {
+            "sources": ["overhead", "lamp", "window"],
+            "intensity_range": (50, 200),  # Lumens
+            "color_temperature_range": (2700, 6500)  # Kelvin
+        },
+        "flooring": {
+            "types": ["wood", "carpet", "tile"],
+            "textures": ["smooth", "textured", "patterned"]
+        },
+        "obstacles": {
+            "static": ["plant", "decorative_item"],
+            "dynamic": ["pet", "child", "vacuum_robot"],
+            "frequency": 0.2  # 20% chance of dynamic obstacles
+        }
+    },
+    "office_environment": {
+        "layout": {
+            "rooms": ["cubicles", "meeting_rooms", "hallways", "break_area"],
+            "open_spaces": True,
+            "partitions": True
+        },
+        "furniture": {
+            "common_items": ["desk", "chair", "cabinet", "plant"],
+            "density": 0.4,
+            "variability": 0.5
+        },
+        "lighting": {
+            "sources": ["fluorescent", "LED", "window"],
+            "intensity_range": (200, 500),
+            "color_temperature_range": (4000, 5000)
+        },
+        "flooring": {
+            "types": ["carpet", "tile", "laminate"],
+            "textures": ["smooth", "anti-fatigue"]
+        },
+        "obstacles": {
+            "static": ["printer", "coffee_station"],
+            "dynamic": ["colleagues", "delivery_robot"],
+            "frequency": 0.3
+        }
+    },
+    "industrial_environment": {
+        "layout": {
+            "areas": ["work_floor", "storage", "assembly", "inspection"],
+            "high_clearance": True,
+            "equipment_zones": True
+        },
+        "furniture": {
+            "common_items": ["workbench", "tool_cabinet", "machine", "pallet"],
+            "density": 0.6,
+            "variability": 0.3
+        },
+        "lighting": {
+            "sources": ["industrial_LED", "overhead_crane_lights"],
+            "intensity_range": (300, 1000),
+            "color_temperature_range": (5000, 6500)
+        },
+        "flooring": {
+            "types": ["concrete", "epoxy", "metal_grating"],
+            "textures": ["smooth", "grippy", "chemical_resistant"]
+        },
+        "obstacles": {
+            "static": ["machinery", "storage_racks", "conveyor"],
+            "dynamic": ["forklift", "workers", "automated_guided_vehicle"],
+            "frequency": 0.5
+        }
+    }
+}
+
+# Implementation for environment creation
+class EnvironmentCreator:
+    """Create diverse indoor environments"""
+
+    def __init__(self, config):
+        self.config = config
+
+    def create_environment_variant(self, env_type, seed=None):
+        """Create a variant of the specified environment type"""
+        if seed:
+            np.random.seed(seed)
+
+        # Get configuration for environment type
+        env_config = self.config.get(env_type)
+        if not env_config:
+            raise ValueError(f"Unknown environment type: {env_type}")
+
+        # Create base layout
+        stage = self._create_base_layout(env_config["layout"])
+
+        # Add furniture
+        self._add_furniture(stage, env_config["furniture"])
+
+        # Add lighting
+        self._add_lighting(stage, env_config["lighting"])
+
+        # Add flooring
+        self._add_flooring(stage, env_config["flooring"])
+
+        # Add obstacles
+        self._add_obstacles(stage, env_config["obstacles"])
+
+        return stage
+
+    def _create_base_layout(self, layout_config):
+        """Create the base layout of the environment"""
+        # Implementation would create rooms, corridors, etc.
+        stage = omni.usd.get_context().get_stage()
+        return stage
+
+    def _add_furniture(self, stage, furniture_config):
+        """Add furniture to the environment"""
+        # Place furniture according to density and variability
+        pass
+
+    def _add_lighting(self, stage, lighting_config):
+        """Add lighting to the environment"""
+        # Add lights according to configuration
+        pass
+
+    def _add_flooring(self, stage, flooring_config):
+        """Add flooring to the environment"""
+        # Add appropriate floor materials
+        pass
+
+    def _add_obstacles(self, stage, obstacles_config):
+        """Add obstacles to the environment"""
+        # Add static and dynamic obstacles
+        pass
+```
+
+### 8.5.2 Outdoor Environment Variants
+
+```python
+# Configuration for outdoor environments
+outdoor_environment_configs = {
+    "urban_environment": {
+        "terrain": {
+            "types": ["sidewalk", "road", "grass", "gravel"],
+            "slope_range": (-0.1, 0.1),
+            "roughness_range": (0.0, 0.05)
+        },
+        "obstacles": {
+            "static": ["lamppost", "bench", "trash_can", "bicycle"],
+            "dynamic": ["pedestrians", "vehicles", "dogs"],
+            "density": 0.1  # Obstacles per square meter
+        },
+        "weather": {
+            "conditions": ["clear", "cloudy", "rainy", "snowy"],
+            "probability": {"clear": 0.6, "cloudy": 0.3, "rainy": 0.08, "snowy": 0.02}
+        },
+        "lighting": {
+            "natural_light": True,
+            "artificial_light": ["street_lamps", "building_lights"],
+            "day_night_cycle": True
+        }
+    },
+    "natural_environment": {
+        "terrain": {
+            "types": ["grass", "dirt", "rock", "sand", "water_edge"],
+            "slope_range": (-0.3, 0.3),
+            "roughness_range": (0.0, 0.2)
+        },
+        "obstacles": {
+            "static": ["tree", "bush", "rock", "stream"],
+            "dynamic": ["animals", "falling_branches"],
+            "density": 0.05
+        },
+        "weather": {
+            "conditions": ["sunny", "partly_cloudy", "rainy", "windy"],
+            "probability": {"sunny": 0.5, "partly_cloudy": 0.3, "rainy": 0.15, "windy": 0.05}
+        },
+        "lighting": {
+            "natural_light": True,
+            "artificial_light": False,
+            "day_night_cycle": True
+        }
+    }
+}
+```
+
+## 8.6 Environment Validation and Quality Assurance
+
+### 8.6.1 Validation Metrics
+
+```python
+# Metrics for validating simulation environments
+environment_validation_metrics = {
+    "visual_validation": {
+        "photorealism_score": {
+            "metric": "LPIPS",  # Learned Perceptual Image Patch Similarity
+            "threshold": 0.3,   # Acceptable difference from real images
+            "benchmark": "real_world_dataset"
+        },
+        "geometric_accuracy": {
+            "metric": "point_cloud_registration_error",
+            "threshold_cm": 5.0,  # Centimeters
+            "benchmark": "lidar_scan_of_real_env"
+        },
+        "lighting_match": {
+            "metric": "histogram_comparison",
+            "threshold": 0.1,   # Acceptable histogram difference
+            "benchmark": "hdr_image_of_real_env"
+        }
+    },
+    "physical_validation": {
+        "dynamics_match": {
+            "metric": "trajectory_deviation",
+            "threshold_cm": 10.0,
+            "benchmark": "real_robot_trajectory"
+        },
+        "contact_modeling": {
+            "metric": "contact_force_correlation",
+            "threshold": 0.8,   # Correlation coefficient
+            "benchmark": "force_plate_measurements"
+        },
+        "locomotion_validation": {
+            "metric": "walking_stability_comparison",
+            "threshold": 0.95,  # Success rate comparison
+            "benchmark": "real_robot_locomotion_data"
+        }
+    },
+    "sensor_validation": {
+        "camera_validation": {
+            "metric": "feature_matching_score",
+            "threshold": 0.7,
+            "benchmark": "real_camera_data"
+        },
+        "imu_validation": {
+            "metric": "orientation_drift_comparison",
+            "threshold_degrees": 5.0,
+            "benchmark": "real_imu_data"
+        },
+        "depth_validation": {
+            "metric": "depth_accuracy_rmse",
+            "threshold_cm": 10.0,
+            "benchmark": "real_depth_sensor_data"
+        }
+    }
+}
+```
+
+### 8.6.2 Automated Testing Framework
+
+```python
+# Automated testing framework for environment validation
+class EnvironmentValidationFramework:
+    """Framework for validating simulation environments"""
+
+    def __init__(self, metrics_config):
+        self.metrics_config = metrics_config
+        self.test_results = {}
+
+    def run_visual_validation_tests(self, sim_env, real_data):
+        """Run visual validation tests"""
+        results = {}
+
+        # Photorealism test
+        results["photorealism"] = self._test_photorealism(sim_env, real_data)
+
+        # Geometric accuracy test
+        results["geometric_accuracy"] = self._test_geometric_accuracy(sim_env, real_data)
+
+        # Lighting validation
+        results["lighting_match"] = self._test_lighting_match(sim_env, real_data)
+
+        self.test_results["visual"] = results
+        return results
+
+    def run_physical_validation_tests(self, sim_env, real_robot_data):
+        """Run physical validation tests"""
+        results = {}
+
+        # Dynamics validation
+        results["dynamics_match"] = self._test_dynamics_match(sim_env, real_robot_data)
+
+        # Contact modeling validation
+        results["contact_modeling"] = self._test_contact_modeling(sim_env, real_robot_data)
+
+        # Locomotion validation
+        results["locomotion"] = self._test_locomotion_validation(sim_env, real_robot_data)
+
+        self.test_results["physical"] = results
+        return results
+
+    def run_sensor_validation_tests(self, sim_env, real_sensor_data):
+        """Run sensor validation tests"""
+        results = {}
+
+        # Camera validation
+        results["camera"] = self._test_camera_validation(sim_env, real_sensor_data)
+
+        # IMU validation
+        results["imu"] = self._test_imu_validation(sim_env, real_sensor_data)
+
+        # Depth sensor validation
+        results["depth"] = self._test_depth_validation(sim_env, real_sensor_data)
+
+        self.test_results["sensor"] = results
+        return results
+
+    def generate_validation_report(self):
+        """Generate comprehensive validation report"""
+        report = {
+            "timestamp": str(datetime.now()),
+            "environment_config": self._get_environment_config(),
+            "validation_results": self.test_results,
+            "overall_score": self._calculate_overall_score(),
+            "recommendations": self._generate_recommendations()
+        }
+
+        return report
+
+    def _test_photorealism(self, sim_env, real_data):
+        """Test photorealism of simulation"""
+        # Calculate LPIPS score between sim and real images
+        pass
+
+    def _test_geometric_accuracy(self, sim_env, real_data):
+        """Test geometric accuracy of environment"""
+        # Compare point clouds from sim and real
+        pass
+
+    def _test_lighting_match(self, sim_env, real_data):
+        """Test lighting similarity"""
+        # Compare lighting conditions
+        pass
+
+    def _test_dynamics_match(self, sim_env, real_robot_data):
+        """Test dynamics similarity"""
+        # Compare robot trajectories in sim vs real
+        pass
+
+    def _calculate_overall_score(self):
+        """Calculate overall validation score"""
+        # Aggregate all validation results
+        pass
+
+    def _generate_recommendations(self):
+        """Generate recommendations based on validation results"""
+        # Provide suggestions for environment improvements
+        pass
+```
+
+## 8.7 Performance Optimization
+
+### 8.7.1 Rendering Optimization
+
+```python
+# Rendering optimization settings for high-fidelity environments
+rendering_optimization_config = {
+    "level_of_detail": {
+        "distance_based_lod": True,
+        "lod_distance_thresholds": [5.0, 10.0, 20.0],  # Meters
+        "detail_reduction_factors": [0.5, 0.25, 0.1]   # Reduce detail by factor
+    },
+    "culling_techniques": {
+        "frustum_culling": True,
+        "occlusion_culling": True,
+        "distance_culling": True,
+        "cull_distance": 50.0  # Meters
+    },
+    "rendering_quality": {
+        "real_time_training": {
+            "resolution_scale": 0.5,      # Train at lower resolution
+            "shadows": "low",             # Low quality shadows
+            "reflections": False,         # Disable reflections
+            "post_processing": "minimal"  # Minimal post-processing
+        },
+        "evaluation_rendering": {
+            "resolution_scale": 1.0,      # Full resolution for eval
+            "shadows": "high",            # High quality shadows
+            "reflections": "realistic",   # Realistic reflections
+            "post_processing": "full"     # Full post-processing
+        }
+    },
+    "multi_gpu_rendering": {
+        "render_instance_distribution": True,
+        "load_balancing": "adaptive",
+        "synchronization": "temporal"
+    }
+}
+```
+
+### 8.7.2 Physics Optimization
+
+```python
+# Physics optimization settings
+physics_optimization_config = {
+    "solver_optimization": {
+        "solver_type": "TGS",           # TGS or PBD
+        "iterations": {
+            "position": 4,              # Position solver iterations
+            "velocity": 2,              # Velocity solver iterations
+            "warm_start": True          # Use warm start for stability
+        },
+        "substepping": {
+            "enabled": True,
+            "max_substeps": 8,
+            "adaptivity_threshold": 0.1  # Adjust substeps based on contacts
+        }
+    },
+    "collision_optimization": {
+        "broad_phase_algorithm": "multibox",
+        "narrow_phase_algorithm": "hybrid",
+        "pair_cache_size": 8192,
+        "contact_manifold_cache": True
+    },
+    "decomposition": {
+        "convex_decomposition": True,
+        "max_convex_hulls": 16,
+        "decomposition_quality": "medium"  # low, medium, high
+    }
+}
+```
+
+## 8.8 Integration with Isaac Sim
+
+### 8.8.1 Environment Loading and Management
+
+```python
+# Environment loading and management system
+class EnvironmentManager:
+    """Manage loading and switching between environments"""
+
+    def __init__(self):
+        self.loaded_environments = {}
+        self.active_environment = None
+        self.environment_registry = self._initialize_registry()
+
+    def _initialize_registry(self):
+        """Initialize environment registry"""
+        return {
+            "home_simple": "/Isaac/Environments/Home/home_simple.usd",
+            "office_simple": "/Isaac/Environments/Office/office_simple.usd",
+            "warehouse": "/Isaac/Environments/Industrial/warehouse.usd",
+            "outdoor_park": "/Isaac/Environments/Outdoor/park.usd"
+        }
+
+    def load_environment(self, env_name, config=None):
+        """Load specified environment"""
+        if env_name not in self.environment_registry:
+            raise ValueError(f"Unknown environment: {env_name}")
+
+        usd_path = self.environment_registry[env_name]
+
+        # Load environment from USD
+        stage = omni.usd.get_context().get_stage()
+        env_prim = stage.OverridePrim(Sdf.Path(f"/World/{env_name}"))
+        env_prim.GetReferences().AddReference(usd_path)
+
+        # Store in loaded environments
+        self.loaded_environments[env_name] = {
+            "prim": env_prim,
+            "config": config,
+            "loaded": True
+        }
+
+        return env_prim
+
+    def switch_environment(self, env_name):
+        """Switch to specified environment"""
+        if env_name not in self.loaded_environments:
+            self.load_environment(env_name)
+
+        # Activate the environment
+        if self.active_environment:
+            # Deactivate current environment
+            self._deactivate_environment(self.active_environment)
+
+        # Activate new environment
+        self.active_environment = env_name
+        self._activate_environment(env_name)
+
+    def add_dynamic_elements(self, env_name, elements_config):
+        """Add dynamic elements to environment"""
+        if env_name not in self.loaded_environments:
+            raise ValueError(f"Environment {env_name} not loaded")
+
+        # Add dynamic elements based on configuration
+        for element in elements_config:
+            self._add_dynamic_element(env_name, element)
+
+    def _deactivate_environment(self, env_name):
+        """Deactivate current environment"""
+        # Implementation would hide/disable current environment
+        pass
+
+    def _activate_environment(self, env_name):
+        """Activate specified environment"""
+        # Implementation would show/enable environment
+        pass
+
+    def _add_dynamic_element(self, env_name, element_config):
+        """Add a dynamic element to the environment"""
+        # Add dynamic objects, change lighting, etc.
+        pass
+```
+
+### 8.8.2 Sensor Integration
+
+```python
+# Sensor integration with environments
+class SensorIntegrationManager:
+    """Manage sensor integration with environments"""
+
+    def __init__(self, environment_manager):
+        self.env_manager = environment_manager
+        self.attached_sensors = {}
+
+    def attach_sensors_to_robot(self, robot_prim_path, sensor_configs):
+        """Attach sensors to robot in environment"""
+        for sensor_name, config in sensor_configs.items():
+            sensor_prim_path = f"{robot_prim_path}/Sensors/{sensor_name}"
+
+            if config["type"] == "camera":
+                sensor = self._create_camera_sensor(sensor_prim_path, config)
+            elif config["type"] == "imu":
+                sensor = self._create_imu_sensor(sensor_prim_path, config)
+            elif config["type"] == "lidar":
+                sensor = self._create_lidar_sensor(sensor_prim_path, config)
+            else:
+                raise ValueError(f"Unsupported sensor type: {config['type']}")
+
+            # Store sensor reference
+            self.attached_sensors[sensor_name] = {
+                "sensor": sensor,
+                "config": config,
+                "attached_to": robot_prim_path
+            }
+
+    def _create_camera_sensor(self, prim_path, config):
+        """Create camera sensor"""
+        from omni.isaac.sensor import Camera
+        camera = Camera(
+            prim_path=prim_path,
+            frequency=config.get("frequency", 30),
+            resolution=config.get("resolution", [640, 480])
+        )
+
+        # Apply noise and distortion if specified
+        if "noise" in config:
+            camera.add_noise_params(**config["noise"])
+        if "distortion" in config:
+            camera.set_distortion_params(**config["distortion"])
+
+        return camera
+
+    def _create_imu_sensor(self, prim_path, config):
+        """Create IMU sensor"""
+        from omni.isaac.sensor import IMU
+        imu = IMU(
+            prim_path=prim_path,
+            frequency=config.get("frequency", 100)
+        )
+
+        # Apply noise parameters if specified
+        if "noise_params" in config:
+            imu.set_noise_params(**config["noise_params"])
+
+        return imu
+
+    def _create_lidar_sensor(self, prim_path, config):
+        """Create LiDAR sensor"""
+        from omni.isaac.sensor import LidarRtx
+        lidar = LidarRtx(
+            prim_path=prim_path,
+            translation=config.get("position", [0.0, 0.0, 0.0]),
+            orientation=config.get("rotation", [0.0, 0.0, 0.0, 1.0]),
+            config_file_name=config.get("config_file", "Example_Rotary")
+        )
+
+        return lidar
+```
+
+## 8.9 Summary
+
+Creating high-fidelity environments and sensor simulations is critical for effective humanoid robotics development in simulation. Key aspects include:
+
+- **Visual Fidelity**: Photorealistic rendering with accurate materials and lighting
+- **Physical Accuracy**: Realistic physics modeling with appropriate parameters
+- **Sensor Simulation**: Accurate modeling of real sensor characteristics and noise
+- **Domain Randomization**: Techniques to improve sim-to-real transfer
+- **Environment Diversity**: Creating varied environments that match deployment scenarios
+- **Validation**: Ensuring simulation environments match real-world conditions
+- **Performance**: Optimizing for both training efficiency and accuracy
+
+The combination of high-fidelity visual and physical simulation with realistic sensor models enables the development of humanoid robots that can successfully transition from simulation to real-world deployment.
+
+## Exercises
+
+1. Create a home environment with realistic furniture and lighting in Isaac Sim.
+2. Implement domain randomization for visual appearance and physics parameters.
+3. Add a humanoid robot to the environment and configure its sensors.
+4. Validate the environment by comparing simulation results with real-world data.
+5. Optimize the environment for real-time performance while maintaining fidelity.
+
+## References
+
+- NVIDIA Isaac Sim Documentation. (2024). NVIDIA Corporation.
+- Peng, X.B., et al. (2018). "Sim-to-real transfer of robotic control with dynamics randomization."
+- Sadeghi, F., & Levine, S. (2017). "CAD2RL: Real single-image flight without a single real image."
+- James, S., et al. (2019). "Sim-to-real via sim-to-sim: Data-efficient robotic grasping via randomized-to-canonical adaptation networks."

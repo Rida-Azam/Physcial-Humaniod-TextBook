@@ -1,55 +1,59 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version change: 1.1.0 → 1.2.0
+- Added sections: RAG chatbot integration, agent skills, databases, enhanced auth
+- Modified sections: Subagents, Bonus Features, Additional Constraints
+- Templates requiring updates: ✅ Updated
+- Follow-up TODOs: None
+-->
+# Physical AI & Humanoid Robotics Textbook Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Accuracy through Primary Source Verification
+All content must be grounded in peer-reviewed research, technical documentation, and real-world validation. Claims must be supported by verifiable sources with proper citations in APA 7th edition format. Zero tolerance for plagiarism with all content subject to verification through plagiarism detection tools.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Clarity for Technical Audience
+Content must be accessible to upper-undergraduate to graduate-level students with backgrounds in computer science, robotics, or mechanical/electrical engineering. Maintain Flesch-Kincaid Grade Level 10-12 readability. Complex concepts should be explained with progressive difficulty and hands-on exercises.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Reproducibility and Open Access
+All code examples, simulations, and demonstrations must be reproducible using open-source tools only. All claims must be testable, all code runnable in Docker/Colab environments, and all simulations reproducible with provided configurations. All content licensed as CC-BY-SA 4.0 (text) / MIT (code).
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Practical Relevance for Real Systems
+Focus on building and teaching with real humanoid systems using only open tools. Content must bridge the gap between theory and practice, enabling students to build, simulate, and control actual humanoid robots using ROS 2, Gazebo, Isaac Sim, and Vision-Language-Action pipelines.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Pedagogical Effectiveness
+Content must follow progressive difficulty with clear learning objectives, hands-on exercises, and programming projects. Each chapter must include 5-8 exercises plus 1 programming project, with embedded executable code examples via interactive platforms like Thebe/Starlark.
 
-### [PRINCIPLE_6_NAME]
+### VI. Interactive and Multilingual Accessibility
+Textbook must include AI-native interactive features including live code blocks, interactive quizzes, text selection explain popup, hover tooltips, accordion sections, and progress tracking. Support multiple languages including English, Urdu, and Roman Urdu with translation capabilities.
 
+## Additional Constraints
 
-[PRINCIPLE__DESCRIPTION]
+Technology Stack: Docusaurus v3 + MDX for deployment to GitHub Pages, with Vercel backend for advanced features. ROS 2 Jazzy framework for robotics content, NVIDIA Isaac Sim 2024.1+ for simulation, Python 3.10+ for all code examples.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Deployment: Fully built with Docusaurus v3 + MDX, automatically deployed to GitHub Pages. Include subagents for content generation, personalization, translation, and quiz management.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Bonus Features: Include subagents_claude_code, better_auth_background, personalization_button, urdu_roman_translation_button, and agent_skills_rag_chatbot.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Languages: English, Urdu, and Roman Urdu.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Interactive Features: live_code_blocks, interactive_quizzes, text_selection_popup, hover_tooltips, accordion_sections, and progress_tracking.
+
+Subagents: ContentGenerator, Personalizer, UrduTranslator, RomanUrduConverter, QuizMaster, DiagramExplainer, RagIngester.
+
+Agent Skills: explain_concept, generate_quiz, translate_to_urdu, translate_to_roman_urdu, simplify_for_beginner, add_advanced_code, explain_diagram_vision, retrieve_rag.
+
+Databases: Neon PostgreSQL and Qdrant Cloud for RAG functionality.
+
+Authentication: Better Auth with background questions for enhanced security.
+
+## Development Workflow
+
+All content must be developed following Spec-Driven Development (SDD) methodology with constitution, specification, clarification, planning, and task generation phases. Each chapter must include learning objectives, exercises, embedded executable code, and APA 7th references. Quality validation includes plagiarism checks, code execution verification, and external review by robotics professors. The project targets 300 points guaranteed through Spec Kit Plus implementation with hackathon-focused deliverables and full RAG chatbot integration.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices. All implementations must comply with these principles. Amendments require documentation of changes, approval process, and migration plan for existing content. All PRs and reviews must verify compliance with accuracy, reproducibility, and pedagogical effectiveness standards.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.2.0 | **Ratified**: 2025-12-10 | **Last Amended**: 2025-12-10

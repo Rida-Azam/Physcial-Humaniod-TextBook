@@ -1,0 +1,69 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Book Content
+# 15 chapters across 4 modules as specified
+
+spec:
+  id: "04-book-content"
+  name: "Book Content Structure"
+  description: "15 chapters across 4 modules covering Physical AI and Humanoid Robotics"
+  version: "1.0.0"
+  depends_on: ["00-constitution"]
+  modules:
+    - name: "Module 1 - The Robotic Nervous System (ROS 2)"
+      chapters: [1, 2, 3, 4, 5]
+      topics:
+        - "Introduction to Physical AI and Embodied Intelligence"
+        - "The Humanoid Landscape 2025–2030"
+        - "ROS 2 Architecture Deep Dive"
+        - "Building Real ROS 2 Packages in Python"
+        - "URDF & Robot Description Mastery"
+
+    - name: "Module 2 - The Digital Twin (Simulation)"
+      chapters: [6, 7, 8, 9]
+      topics:
+        - "Simulation Fundamentals – Gazebo Harmonic & Physics Engines"
+        - "NVIDIA Isaac Sim – The New Standard for Humanoid Training"
+        - "Building High-Fidelity Environments & Sensor Simulation"
+        - "Unity as Alternative/Complementary Visualizer"
+
+    - name: "Module 3 - The AI-Robot Brain (NVIDIA Isaac Platform)"
+      chapters: [10, 11, 12]
+      topics:
+        - "Isaac ROS – Hardware-Accelerated Perception & Navigation"
+        - "Bipedal Locomotion – ZMP → MPC → RL Walking Policies"
+        - "Dexterous Manipulation & Sim-to-Real Grasp Transfer"
+
+    - name: "Module 4 - Vision-Language-Action & Conversational Humanoids"
+      chapters: [13, 14, 15]
+      topics:
+        - "Vision-Language-Action Models (OpenVLA, RT-2-X, π0, Octo)"
+        - "From Voice → Plan → Action (Whisper + LLM Planner + ROS Executor)"
+        - "Capstone Project – Autonomous Humanoid from Spoken Command"
+
+  requirements:
+    - "Each chapter includes learning objectives"
+    - "Each chapter includes 5-8 exercises + 1 programming project"
+    - "Each chapter includes embedded executable code"
+    - "Each chapter includes APA 7th references"
+    - "Flesch-Kincaid Grade Level 10-12 compliance"
+    - "Minimum 85 sources (≥55% peer-reviewed)"
+
+  files:
+    - "frontend/docs/chapter1.mdx"
+    - "frontend/docs/chapter2.mdx"
+    - "frontend/docs/chapter3.mdx"
+    - "frontend/docs/chapter4.mdx"
+    - "frontend/docs/chapter5.mdx"
+    - "frontend/docs/chapter6.mdx"
+    - "frontend/docs/chapter7.mdx"
+    - "frontend/docs/chapter8.mdx"
+    - "frontend/docs/chapter9.mdx"
+    - "frontend/docs/chapter10.mdx"
+    - "frontend/docs/chapter11.mdx"
+    - "frontend/docs/chapter12.mdx"
+    - "frontend/docs/chapter13.mdx"
+    - "frontend/docs/chapter14.mdx"
+    - "frontend/docs/chapter15.mdx"
+
+implementation_status: "completed"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

@@ -1,0 +1,27 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - RAG Chatbot
+# RAG system with OpenAI Agents and ChatKit integration
+
+spec:
+  id: "03-rag-chatbot"
+  name: "RAG Chatbot System"
+  description: "Retrieval Augmented Generation chatbot with OpenAI Agents and vector search"
+  version: "1.0.0"
+  depends_on: ["00-constitution", "02-backend"]
+  components:
+    - "Qdrant vector database"
+    - "RAG query processing"
+    - "OpenAI Agents with tools"
+    - "ChatKit widget integration"
+    - "Document ingestion pipeline"
+    - "Semantic search capabilities"
+    - "Context-aware responses"
+
+  files:
+    - "backend/app/services/rag.py"
+    - "backend/app/services/qdrant.py"
+    - "backend/app/agents/"
+    - "frontend/src/components/Chatbot.tsx"
+
+implementation_status: "planned"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

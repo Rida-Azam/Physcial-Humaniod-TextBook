@@ -1,0 +1,27 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Advanced Bonus
+# Quizzes, live code, progress tracking, vision features
+
+spec:
+  id: "07-advanced-bonus"
+  name: "Advanced Bonus Features"
+  description: "Interactive quizzes, live code execution, progress tracking, and vision features"
+  version: "1.0.0"
+  depends_on: ["00-constitution", "01-frontend"]
+  components:
+    - "Interactive quizzes system"
+    - "Live code execution blocks"
+    - "Progress tracking and analytics"
+    - "Vision diagram explainer"
+    - "Text selection popup explanations"
+    - "Hover tooltips"
+    - "Accordion sections"
+    - "Interactive code editors"
+
+  files:
+    - "frontend/src/components/Chatbot.tsx"
+    - "frontend/src/theme/"
+    - "frontend/docs/ (interactive MDX)"
+
+implementation_status: "in_progress"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

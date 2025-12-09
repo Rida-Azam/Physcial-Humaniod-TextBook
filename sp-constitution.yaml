@@ -1,0 +1,72 @@
+# SP Constitution - Physical AI & Humanoid Robotics Textbook
+# Main project definition file
+
+project:
+  name: "Physical AI & Humanoid Robotics Textbook"
+  version: "1.0.0"
+  description: "AI-Native textbook with RAG chatbot, multilingual support, and interactive features"
+  target_score: 300
+  spec_kit_version: "plus"
+
+structure:
+  frontend:
+    framework: "Docusaurus v3"
+    language: "TypeScript/JavaScript"
+    deployment: "GitHub Pages"
+    additional_backend: "Vercel"
+
+  backend:
+    framework: "FastAPI"
+    database:
+      - "Neon PostgreSQL"
+      - "Qdrant Cloud"
+    authentication: "Better Auth"
+
+  ai_features:
+    rag_system: true
+    chatbot: "OpenAI ChatKit"
+    agents: "OpenAI Agents with custom tools"
+    multilingual:
+      - "English"
+      - "Urdu"
+      - "Roman Urdu"
+    personalization: true
+    interactive_features:
+      - "Live code blocks"
+      - "Interactive quizzes"
+      - "Text selection popup"
+      - "Hover tooltips"
+      - "Accordion sections"
+      - "Progress tracking"
+
+spec_files:
+  - "specs/00-constitution.yaml"
+  - "specs/01-frontend.yaml"
+  - "specs/02-backend.yaml"
+  - "specs/03-rag-chatbot.yaml"
+  - "specs/04-book-content.yaml"
+  - "specs/05-auth-personalization.yaml"
+  - "specs/06-translation-urdu-roman.yaml"
+  - "specs/07-advanced-bonus.yaml"
+
+subagents:
+  - "ContentGenerator"
+  - "Personalizer"
+  - "UrduTranslator"
+  - "RomanUrduConverter"
+  - "QuizMaster"
+  - "DiagramExplainer"
+  - "RagIngester"
+
+agent_skills:
+  - "explain_concept"
+  - "generate_quiz"
+  - "translate_to_urdu"
+  - "translate_to_roman_urdu"
+  - "simplify_for_beginner"
+  - "add_advanced_code"
+  - "explain_diagram_vision"
+  - "retrieve_rag"
+
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

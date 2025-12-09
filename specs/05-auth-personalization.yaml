@@ -1,0 +1,25 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Auth & Personalization
+# Better-Auth with background questions and personalization features
+
+spec:
+  id: "05-auth-personalization"
+  name: "Authentication & Personalization"
+  description: "Better-Auth implementation with background questions and personalization features"
+  version: "1.0.0"
+  depends_on: ["00-constitution", "02-backend"]
+  components:
+    - "Better-Auth integration"
+    - "Background questions for enhanced security"
+    - "User personalization settings"
+    - "Learning progress tracking"
+    - "Customizable interface preferences"
+    - "User session management"
+
+  files:
+    - "backend/app/routers/personalize.py"
+    - "frontend/src/components/PersonalizeButton.tsx"
+    - "backend/app/services/neon.py"  # User data storage
+
+implementation_status: "planned"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

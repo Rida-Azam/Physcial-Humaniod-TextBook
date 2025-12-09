@@ -1,0 +1,25 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Translation
+# Urdu and Roman Urdu translation capabilities
+
+spec:
+  id: "06-translation-urdu-roman"
+  name: "Urdu and Roman Urdu Translation"
+  description: "Translation features supporting Urdu and Roman Urdu languages"
+  version: "1.0.0"
+  depends_on: ["00-constitution", "02-backend"]
+  components:
+    - "Urdu language support"
+    - "Roman Urdu language support"
+    - "Translation toggle component"
+    - "Backend translation services"
+    - "Multilingual content delivery"
+    - "RTL language support"
+
+  files:
+    - "backend/app/routers/translate.py"
+    - "frontend/src/components/TranslateToggle.tsx"
+    - "backend/app/services/neon.py"  # Translation data storage
+
+implementation_status: "planned"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"

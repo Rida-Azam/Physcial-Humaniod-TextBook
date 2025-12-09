@@ -1,0 +1,766 @@
+---
+id: chapter15
+sidebar_position: 3
+title: Capstone Project – Autonomous Humanoid from Spoken Command
+---
+
+# Chapter 15: Capstone Project – Autonomous Humanoid from Spoken Command
+
+## Learning Objectives
+
+By the end of this chapter, students will be able to:
+- Integrate all components learned throughout the textbook into a complete autonomous humanoid system
+- Implement an end-to-end system that responds to spoken commands with complex robotic behaviors
+- Design and execute a comprehensive evaluation of the complete system
+- Identify and address integration challenges between different subsystems
+- Document and present their capstone project results
+
+## 15.1 Introduction to the Capstone Project
+
+The capstone project represents the culmination of all knowledge and skills acquired throughout this textbook. Students will implement a complete autonomous humanoid system capable of understanding and executing spoken commands in real-world environments. This project integrates:
+
+- **Physical AI & Embodied Intelligence**: Understanding how the robot's physical form affects its intelligence and behavior
+- **ROS 2 Architecture**: Using the robot operating system for communication and coordination
+- **Simulation & Control**: Leveraging simulation for development and testing before real-world deployment
+- **NVIDIA Isaac Platform**: Utilizing hardware-accelerated perception and navigation
+- **Vision-Language-Action Models**: Enabling natural human-robot interaction through spoken commands
+
+The primary challenge for this capstone is: **"Pick up the red cup"** - a task that requires the integration of perception, planning, manipulation, and execution in response to a simple spoken command.
+
+## 15.2 Project Requirements and Specifications
+
+### 15.2.1 Functional Requirements
+
+The complete system must:
+
+1. **Voice Recognition**: Accurately recognize spoken commands using Whisper or similar technology
+2. **Natural Language Understanding**: Parse commands to extract intent and relevant entities (object, location, action)
+3. **Perception**: Detect and localize the specified object (e.g., "red cup") in the environment using VSLAM and object detection
+4. **Planning**: Generate a sequence of actions to approach, grasp, and manipulate the object
+5. **Execution**: Safely execute the planned actions using the humanoid robot's locomotion and manipulation capabilities
+6. **Safety**: Implement safety checks and emergency stop functionality throughout the process
+
+### 15.2.2 Non-Functional Requirements
+
+The system must also meet:
+
+1. **Performance**: Complete the task within 5 minutes from command to execution
+2. **Reliability**: Achieve 80% success rate over 10 trials
+3. **Safety**: Include multiple safety layers to prevent harm to robot, environment, or humans
+4. **Robustness**: Handle variations in object placement, lighting, and acoustic conditions
+5. **Documentation**: Provide comprehensive documentation for system setup and operation
+
+### 15.2.3 Success Criteria
+
+A successful implementation will:
+- Correctly identify the specified object (accuracy > 90%)
+- Navigate safely to the object location
+- Execute grasping with 80% success rate
+- Complete the "pick up" action without falling or causing damage
+- Respond to spoken commands naturally and efficiently
+- Demonstrate the complete pipeline in a real-world environment
+
+## 15.3 System Architecture
+
+### 15.3.1 High-Level Architecture
+
+The complete system follows a modular architecture with clear interfaces:
+
+```
+[Voice Input] → [Speech Recognition] → [NLU] → [Task Planner] → [Action Executor] → [Robot Control]
+      ↑              ↓                    ↓         ↓              ↓                ↓
+[Environment] ← [Perception] ← [VSLAM] ← [Fusion] ← [Scheduler] ← [Safety Layer] ← [Robot]
+```
+
+### 15.3.2 Component Integration
+
+Each major component from previous modules integrates as follows:
+
+#### Voice Processing Module
+```python
+class VoiceProcessingModule:
+    def __init__(self):
+        self.speech_recognizer = WhisperModel()
+        self.nlu_processor = NaturalLanguageProcessor()
+        self.command_validator = CommandValidator()
+
+    def process_voice_command(self, audio_input):
+        # Convert speech to text
+        text = self.speech_recognizer.transcribe(audio_input)
+
+        # Parse natural language
+        parsed_command = self.nlu_processor.parse_command(text)
+
+        # Validate command safety
+        is_safe, reason = self.command_validator.validate(parsed_command)
+
+        if is_safe:
+            return parsed_command
+        else:
+            raise UnsafeCommandError(reason)
+```
+
+#### Perception Module
+```python
+class PerceptionModule:
+    def __init__(self):
+        self.vslam_system = VSLAMSystem()
+        self.object_detector = ObjectDetectionSystem()
+        self.fusion_system = PerceptionFusionSystem()
+
+    def perceive_environment(self):
+        # Get robot pose from VSLAM
+        robot_pose = self.vslam_system.get_pose()
+
+        # Detect objects in current view
+        detections = self.object_detector.detect_objects()
+
+        # Fuse detections with robot pose
+        world_objects = self.fusion_system.fuse_detections(detections, robot_pose)
+
+        return world_objects, robot_pose
+```
+
+#### Planning Module
+```python
+class PlanningModule:
+    def __init__(self):
+        self.task_planner = TaskPlanner()
+        self.motion_planner = MotionPlanner()
+        self.safety_checker = SafetyChecker()
+
+    def plan_action_sequence(self, goal, world_state):
+        # Plan high-level task
+        task_plan = self.task_planner.plan(goal, world_state)
+
+        # Generate motion plans for each task step
+        motion_plans = []
+        for task in task_plan:
+            motion_plan = self.motion_planner.plan_motion(task, world_state)
+
+            # Check safety of motion plan
+            if not self.safety_checker.is_safe(motion_plan, world_state):
+                raise UnsafePlanError(f"Motion plan for {task} is unsafe")
+
+            motion_plans.append(motion_plan)
+
+        return motion_plans
+```
+
+#### Execution Module
+```python
+class ExecutionModule:
+    def __init__(self):
+        self.action_executor = ActionExecutor()
+        self.monitoring_system = ExecutionMonitor()
+        self.recovery_system = ErrorRecoverySystem()
+
+    def execute_plan(self, plan, world_state):
+        for i, action in enumerate(plan):
+            try:
+                # Execute action with monitoring
+                result = self.action_executor.execute_with_monitoring(
+                    action,
+                    world_state,
+                    self.monitoring_system
+                )
+
+                # Update world state based on execution result
+                world_state = self.update_world_state(world_state, action, result)
+
+            except ExecutionError as e:
+                # Attempt recovery
+                recovery_success = self.recovery_system.attempt_recovery(e, plan, i)
+
+                if not recovery_success:
+                    raise SystemFailureError(f"Recovery failed for action {i}")
+
+        return True  # Plan completed successfully
+```
+
+## 15.4 Implementation Strategy
+
+### 15.4.1 Development Phases
+
+The implementation follows an iterative approach with the following phases:
+
+#### Phase 1: Component Integration
+- Integrate voice processing and NLU components
+- Connect perception pipeline to VSLAM and object detection
+- Implement basic task planning with simple actions
+- Create a simple execution system for testing
+
+#### Phase 2: System Integration
+- Connect all modules with proper message passing
+- Implement safety and monitoring systems
+- Test on simulated environment
+- Debug communication and timing issues
+
+#### Phase 3: Real-World Deployment
+- Deploy on physical humanoid robot
+- Test with real objects and environments
+- Refine parameters based on real-world performance
+- Conduct systematic evaluation
+
+### 15.4.2 Testing Strategy
+
+#### Unit Testing
+Each component should be tested individually:
+```python
+import unittest
+
+class TestVoiceProcessing(unittest.TestCase):
+    def setUp(self):
+        self.vpm = VoiceProcessingModule()
+
+    def test_command_parsing(self):
+        command = "Pick up the red cup"
+        parsed = self.vpm.nlu_processor.parse_command(command)
+
+        self.assertEqual(parsed['intent'], 'manipulation')
+        self.assertIn('red cup', parsed['entities']['objects'])
+
+class TestPerceptionSystem(unittest.TestCase):
+    def setUp(self):
+        self.perception = PerceptionModule()
+
+    def test_object_detection(self):
+        # Test with known image containing objects
+        detections = self.perception.object_detector.detect_objects(test_image)
+
+        # Verify expected objects are detected
+        detected_names = [det['name'] for det in detections]
+        self.assertIn('cup', detected_names)
+```
+
+#### Integration Testing
+Test component interactions:
+```python
+class TestSystemIntegration(unittest.TestCase):
+    def setUp(self):
+        self.voice_module = VoiceProcessingModule()
+        self.perception_module = PerceptionModule()
+        self.planning_module = PlanningModule()
+        self.execution_module = ExecutionModule()
+
+    def test_complete_pipeline(self):
+        # Simulate voice command
+        audio_input = self.create_test_audio("Pick up the red cup")
+
+        # Process through all modules
+        command = self.voice_module.process_voice_command(audio_input)
+        world_state = self.perception_module.perceive_environment()
+        plan = self.planning_module.plan_action_sequence(command, world_state)
+        success = self.execution_module.execute_plan(plan, world_state)
+
+        self.assertTrue(success)
+```
+
+## 15.5 Safety and Risk Management
+
+### 15.5.1 Safety Architecture
+
+The system implements multiple layers of safety:
+
+#### Hardware Safety
+- Emergency stop buttons accessible to operators
+- Joint torque limits to prevent excessive force
+- Collision detection and avoidance systems
+- Fall detection and recovery mechanisms
+
+#### Software Safety
+- Command validation to prevent unsafe actions
+- Motion planning with obstacle avoidance
+- Execution monitoring with timeout mechanisms
+- Graceful degradation when components fail
+
+#### Operational Safety
+- Controlled testing environments
+- Human supervision during development
+- Clear protocols for system reset and recovery
+- Documentation of emergency procedures
+
+### 15.5.2 Risk Assessment
+
+Identified risks and mitigation strategies:
+
+| Risk | Impact | Probability | Mitigation |
+|------|--------|-------------|------------|
+| Robot falls during execution | High | Medium | Implement balance control, limit motion speeds, use safety cage during testing |
+| Object damage during grasping | Medium | Medium | Use force control, implement grasp force limits, use compliant grippers |
+| Navigation collision | High | Low | Use obstacle detection, implement safety margins, limit speed |
+| Voice command misinterpretation | Medium | Medium | Use confidence thresholds, implement command confirmation, allow user correction |
+| System failure mid-task | Medium | Low | Implement checkpoint/recovery, use graceful degradation, provide status feedback |
+
+## 15.6 Evaluation and Assessment
+
+### 15.6.1 Evaluation Metrics
+
+The system will be evaluated using the following metrics:
+
+#### Primary Metrics
+- **Task Success Rate**: Percentage of times the robot successfully picks up the specified object
+- **Time to Completion**: Total time from command to successful object pickup
+- **Command Accuracy**: Percentage of correctly interpreted voice commands
+- **Navigation Safety**: Number of collisions or near-misses during navigation
+
+#### Secondary Metrics
+- **Perception Accuracy**: Accuracy of object detection and localization
+- **Planning Efficiency**: Time and quality of generated plans
+- **Execution Smoothness**: Measure of motion quality and stability
+- **User Satisfaction**: Subjective measure of system usability
+
+### 15.6.2 Evaluation Protocol
+
+#### Test Environment Setup
+- Standardized test area with known objects
+- Fixed lighting and acoustic conditions
+- Calibrated camera and microphone positions
+- Safety equipment and emergency procedures in place
+
+#### Test Scenarios
+1. **Baseline Scenario**: Object in clear, unobstructed location
+2. **Cluttered Scenario**: Object among other similar objects
+3. **Challenging Lighting**: Low light or high contrast conditions
+4. **Acoustic Challenges**: Background noise or reverberation
+5. **Multiple Objects**: Multiple similar objects requiring disambiguation
+
+#### Data Collection
+- Record all sensor data, commands, and robot states
+- Log all system decisions and actions
+- Document any failures or unexpected behaviors
+- Collect user feedback on system performance
+
+### 15.6.3 Assessment Rubric
+
+The capstone project will be assessed using the following rubric:
+
+| Criteria | Excellent (4) | Good (3) | Satisfactory (2) | Needs Improvement (1) |
+|----------|---------------|----------|------------------|----------------------|
+| **System Integration** | All components work seamlessly together with robust error handling | Most components integrated with minor issues | Basic integration achieved but with significant limitations | Components fail to integrate properly |
+| **Task Performance** | Successfully completes "pick up the red cup" task with &gt;90% success rate | 80-90% success rate with good performance | 60-80% success rate with acceptable performance | &lt;60% success rate or task not completed |
+| **Safety Implementation** | Comprehensive safety system with multiple fail-safes | Good safety implementation with some limitations | Basic safety measures implemented | Insufficient safety measures |
+| **Documentation** | Comprehensive, clear, and well-organized documentation | Good documentation with minor gaps | Adequate documentation covering main components | Poor or incomplete documentation |
+| **Presentation** | Clear, engaging presentation demonstrating deep understanding | Good presentation with solid understanding | Adequate presentation covering main points | Unclear or incomplete presentation |
+
+## 15.7 Implementation Guide
+
+### 15.7.1 Code Structure
+
+The complete system should follow this structure:
+
+```
+capstone_project/
+├── src/
+│   ├── voice_processing/
+│   │   ├── speech_recognition.py
+│   │   ├── nlu_processor.py
+│   │   └── command_validator.py
+│   ├── perception/
+│   │   ├── vslam_system.py
+│   │   ├── object_detection.py
+│   │   └── fusion_system.py
+│   ├── planning/
+│   │   ├── task_planner.py
+│   │   ├── motion_planner.py
+│   │   └── safety_checker.py
+│   ├── execution/
+│   │   ├── action_executor.py
+│   │   ├── monitoring_system.py
+│   │   └── recovery_system.py
+│   └── main_system.py
+├── config/
+│   ├── system_params.yaml
+│   ├── robot_description.urdf
+│   └── camera_calibration.yaml
+├── launch/
+│   └── capstone_system_launch.py
+├── test/
+│   ├── unit_tests/
+│   ├── integration_tests/
+│   └── evaluation_scripts/
+└── docs/
+    ├── system_architecture.md
+    ├── user_manual.md
+    └── evaluation_results.md
+```
+
+### 15.7.2 Main System Integration
+
+Here's the main system integration code:
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from rclpy.qos import QoSProfile
+from std_msgs.msg import String, Bool
+from sensor_msgs.msg import Image, AudioData
+from geometry_msgs.msg import PoseStamped
+from action_msgs.msg import GoalStatus
+
+from voice_processing import VoiceProcessingModule
+from perception import PerceptionModule
+from planning import PlanningModule
+from execution import ExecutionModule
+
+class CapstoneSystem(Node):
+    def __init__(self):
+        super().__init__('capstone_system')
+
+        # Initialize all modules
+        self.voice_module = VoiceProcessingModule()
+        self.perception_module = PerceptionModule()
+        self.planning_module = PlanningModule()
+        self.execution_module = ExecutionModule()
+
+        # System state
+        self.system_ready = False
+        self.current_task = None
+        self.world_state = {}
+
+        # Publishers and subscribers
+        qos_profile = QoSProfile(depth=10)
+
+        self.voice_sub = self.create_subscription(
+            AudioData, 'audio_input', self.voice_callback, qos_profile
+        )
+
+        self.command_sub = self.create_subscription(
+            String, 'spoken_command', self.command_callback, qos_profile
+        )
+
+        self.status_pub = self.create_publisher(String, 'system_status', qos_profile)
+        self.ready_pub = self.create_publisher(Bool, 'system_ready', qos_profile)
+
+        # Initialize and check system status
+        self.initialize_system()
+
+    def initialize_system(self):
+        """Initialize all system components"""
+        try:
+            # Initialize each module
+            self.voice_module.initialize()
+            self.perception_module.initialize()
+            self.planning_module.initialize()
+            self.execution_module.initialize()
+
+            # Check if all modules are ready
+            if (self.voice_module.is_ready() and
+                self.perception_module.is_ready() and
+                self.planning_module.is_ready() and
+                self.execution_module.is_ready()):
+
+                self.system_ready = True
+                self.get_logger().info('Capstone system initialized successfully')
+
+                # Publish ready status
+                ready_msg = Bool()
+                ready_msg.data = True
+                self.ready_pub.publish(ready_msg)
+            else:
+                self.get_logger().error('One or more modules failed to initialize')
+
+        except Exception as e:
+            self.get_logger().error(f'Error initializing system: {e}')
+            self.system_ready = False
+
+    def voice_callback(self, msg):
+        """Handle incoming voice commands"""
+        if not self.system_ready:
+            self.get_logger().warn('System not ready to process voice commands')
+            return
+
+        try:
+            # Process voice command
+            command = self.voice_module.process_voice_command(msg.data)
+            self.get_logger().info(f'Processed command: {command}')
+
+            # Execute the command
+            success = self.execute_command(command)
+
+            # Publish status
+            status_msg = String()
+            status_msg.data = f'Command execution: {"SUCCESS" if success else "FAILED"}'
+            self.status_pub.publish(status_msg)
+
+        except Exception as e:
+            self.get_logger().error(f'Error processing voice command: {e}')
+            status_msg = String()
+            status_msg.data = f'ERROR: {str(e)}'
+            self.status_pub.publish(status_msg)
+
+    def command_callback(self, msg):
+        """Handle text commands (for testing)"""
+        if not self.system_ready:
+            self.get_logger().warn('System not ready to process commands')
+            return
+
+        try:
+            # Parse and execute command
+            command = self.voice_module.nlu_processor.parse_command(msg.data)
+            success = self.execute_command(command)
+
+            # Publish status
+            status_msg = String()
+            status_msg.data = f'Text command execution: {"SUCCESS" if success else "FAILED"}'
+            self.status_pub.publish(status_msg)
+
+        except Exception as e:
+            self.get_logger().error(f'Error processing text command: {e}')
+            status_msg = String()
+            status_msg.data = f'ERROR: {str(e)}'
+            self.status_pub.publish(status_msg)
+
+    def execute_command(self, command):
+        """Execute a parsed command"""
+        try:
+            self.get_logger().info(f'Executing command: {command}')
+
+            # Update world state with current perception
+            world_objects, robot_pose = self.perception_module.perceive_environment()
+            self.world_state = {
+                'objects': world_objects,
+                'robot_pose': robot_pose,
+                'timestamp': self.get_clock().now()
+            }
+
+            # Plan the action sequence
+            plan = self.planning_module.plan_action_sequence(command, self.world_state)
+            self.get_logger().info(f'Generated plan with {len(plan)} steps')
+
+            # Execute the plan
+            success = self.execution_module.execute_plan(plan, self.world_state)
+
+            return success
+
+        except Exception as e:
+            self.get_logger().error(f'Error executing command: {e}')
+            return False
+
+    def shutdown(self):
+        """Clean shutdown of the system"""
+        self.get_logger().info('Shutting down capstone system...')
+
+        # Stop all modules gracefully
+        self.voice_module.shutdown()
+        self.perception_module.shutdown()
+        self.planning_module.shutdown()
+        self.execution_module.shutdown()
+
+def main(args=None):
+    rclpy.init(args=args)
+    capstone_system = CapstoneSystem()
+
+    try:
+        rclpy.spin(capstone_system)
+    except KeyboardInterrupt:
+        capstone_system.get_logger().info('Interrupted by user')
+    finally:
+        capstone_system.shutdown()
+        capstone_system.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 15.7.3 Launch File
+
+Create a launch file to start all components:
+
+```python
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.event_handlers import OnProcessStart
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+
+def generate_launch_description():
+    # Declare launch arguments
+    namespace = LaunchConfiguration('namespace')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    params_file = LaunchConfiguration('params_file')
+
+    # Voice processing node
+    voice_node = Node(
+        package='capstone_project',
+        executable='voice_processing_node',
+        name='voice_processing',
+        namespace=namespace,
+        parameters=[params_file],
+        output='screen'
+    )
+
+    # Perception node
+    perception_node = Node(
+        package='capstone_project',
+        executable='perception_node',
+        name='perception',
+        namespace=namespace,
+        parameters=[params_file],
+        remappings=[
+            ('/camera/rgb/image_raw', '/camera/rgb/image_raw'),
+            ('/camera/rgb/camera_info', '/camera/rgb/camera_info'),
+        ],
+        output='screen'
+    )
+
+    # Planning node
+    planning_node = Node(
+        package='capstone_project',
+        executable='planning_node',
+        name='planning',
+        namespace=namespace,
+        parameters=[params_file],
+        output='screen'
+    )
+
+    # Execution node
+    execution_node = Node(
+        package='capstone_project',
+        executable='execution_node',
+        name='execution',
+        namespace=namespace,
+        parameters=[params_file],
+        output='screen'
+    )
+
+    # Main capstone system node
+    capstone_node = Node(
+        package='capstone_project',
+        executable='capstone_system',
+        name='capstone_system',
+        namespace=namespace,
+        parameters=[params_file],
+        output='screen'
+    )
+
+    # RViz for visualization
+    rviz_config_file = PathJoinSubstitution([
+        FindPackageShare('capstone_project'),
+        'rviz',
+        'capstone_system.rviz'
+    ])
+
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file],
+        condition=LaunchConfiguration('enable_rviz')
+    )
+
+    # Create launch description
+    ld = LaunchDescription()
+
+    # Add launch arguments
+    ld.add_action(DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description='Top-level namespace all nodes will be placed under'))
+
+    ld.add_action(DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true'))
+
+    ld.add_action(DeclareLaunchArgument(
+        'params_file',
+        default_value=PathJoinSubstitution([
+            FindPackageShare('capstone_project'),
+            'config',
+            'capstone_params.yaml'
+        ]),
+        description='Full path to the ROS2 parameters file to use for all launched nodes'))
+
+    ld.add_action(DeclareLaunchArgument(
+        'enable_rviz',
+        default_value='true',
+        description='Launch RViz2 for visualization'))
+
+    # Add nodes
+    ld.add_action(voice_node)
+    ld.add_action(perception_node)
+    ld.add_action(planning_node)
+    ld.add_action(execution_node)
+    ld.add_action(capstone_node)
+    ld.add_action(rviz_node)
+
+    return ld
+```
+
+## 15.8 Troubleshooting and Debugging
+
+### 15.8.1 Common Issues
+
+#### Integration Issues
+- **Message format mismatches**: Ensure all nodes use compatible message types
+- **Timing issues**: Use appropriate QoS profiles and consider message buffering
+- **Parameter configuration**: Verify all modules have correct parameter values
+
+#### Performance Issues
+- **Latency**: Optimize processing pipelines and consider parallel processing
+- **Resource usage**: Monitor CPU, GPU, and memory usage
+- **Real-time constraints**: Implement priority-based scheduling
+
+#### Safety Issues
+- **Emergency stop**: Ensure emergency stop functionality works in all states
+- **Safe fallbacks**: Implement safe states when components fail
+- **Monitoring**: Continuously monitor system health and performance
+
+### 15.8.2 Debugging Tools
+
+#### ROS 2 Tools
+- `ros2 topic echo`: Monitor message flow between nodes
+- `ros2 service list`: Check available services
+- `rqt_graph`: Visualize node connections
+- `ros2 bag`: Record and replay system data
+
+#### Custom Debugging
+```python
+class DebuggingTools:
+    def __init__(self, node):
+        self.node = node
+        self.debug_pub = node.create_publisher(String, 'debug_info', 10)
+
+    def log_state(self, component, state_data):
+        """Log component state for debugging"""
+        debug_msg = String()
+        debug_msg.data = f'{component}: {state_data}'
+        self.debug_pub.publish(debug_msg)
+
+    def visualize_plan(self, plan, robot_pose):
+        """Visualize planned path in RViz"""
+        # Implementation would publish visualization markers
+        pass
+```
+
+## 15.9 Conclusion
+
+The capstone project represents the ultimate test of the knowledge and skills developed throughout this textbook. Successfully implementing an autonomous humanoid system that responds to spoken commands requires integrating multiple complex technologies while maintaining safety and reliability. This project not only demonstrates technical competency but also showcases the ability to manage a complex, multi-disciplinary engineering challenge.
+
+Students completing this capstone will have gained invaluable experience in:
+- System integration and architecture
+- Real-time processing and decision making
+- Safety-critical system design
+- Multi-modal AI systems
+- Human-robot interaction
+
+The skills developed through this project provide a strong foundation for careers in robotics, AI, and autonomous systems.
+
+## Exercises
+
+1. **Implementation Exercise**: Complete the full capstone system implementation following the architecture described in this chapter.
+2. **Evaluation Exercise**: Conduct a comprehensive evaluation of your system using the metrics and protocols described.
+3. **Extension Exercise**: Extend your system to handle more complex commands involving multiple objects or sequential actions.
+4. **Optimization Exercise**: Optimize your system for better performance, either in speed, accuracy, or resource usage.
+
+## References
+
+- OpenVLA Team (2024). "OpenVLA: An Open-Source Vision-Language-Action Model for Robotics."
+- NVIDIA Isaac Team (2024). "Isaac Sim and Isaac ROS Documentation."
+- ROS 2 Documentation. "Robot Operating System 2: Concepts and Best Practices."
+- Khatib, O., et al. (2018). "Humanoid Robots: From Concept to Reality."

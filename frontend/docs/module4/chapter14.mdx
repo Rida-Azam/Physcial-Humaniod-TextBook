@@ -1,0 +1,786 @@
+---
+id: chapter14
+sidebar_position: 2
+title: From Voice → Plan → Action
+---
+
+# Chapter 14: From Voice → Plan → Action
+
+## Learning Objectives
+
+By the end of this chapter, students will be able to:
+- Implement a voice processing pipeline using speech recognition models
+- Design a planning system that translates natural language commands into robot actions
+- Integrate voice processing, planning, and execution in a unified system
+- Create a robust ROS 2-based voice-controlled robot system
+- Evaluate the performance and safety of voice-controlled robotic systems
+
+## 14.1 Introduction to Voice-Controlled Robotics
+
+Voice control represents one of the most intuitive interfaces for human-robot interaction. By enabling robots to understand and execute natural language commands, we bridge the gap between human intention and robotic action. This chapter explores the complete pipeline from voice input to robot execution, focusing on the challenges and solutions in each component.
+
+### 14.1.1 The Voice → Plan → Action Pipeline
+
+The voice-controlled robotic system follows a multi-stage pipeline:
+
+```
+Voice Input → Speech Recognition → Natural Language Understanding → Task Planning → Action Execution → Robot Control
+```
+
+Each stage transforms the input from one representation to another, ultimately resulting in physical robot actions.
+
+### 14.1.2 Challenges in Voice-Controlled Robotics
+
+Voice-controlled robotics faces several unique challenges:
+- **Ambiguity in Natural Language**: Commands like "move the object" require contextual understanding
+- **Real-time Processing Requirements**: The system must respond quickly to maintain natural interaction
+- **Noise and Environmental Factors**: Background noise can affect speech recognition accuracy
+- **Robustness to Varying Commands**: The system should handle synonymous commands and unexpected phrasings
+
+## 14.2 Voice Processing Pipeline
+
+### 14.2.1 Speech Recognition
+
+The first step in voice processing is converting audio to text. Modern systems use deep learning models like Whisper for this task.
+
+#### Whisper Architecture
+
+Whisper is a transformer-based model that performs robust speech recognition across multiple languages. It's particularly effective because it's trained on a large and diverse dataset of audio-text pairs.
+
+```python
+import torch
+import whisper
+
+# Load pre-trained Whisper model
+model = whisper.load_model("base")  # Options: tiny, base, small, medium, large
+
+def transcribe_audio(audio_path):
+    """Transcribe audio to text using Whisper"""
+    result = model.transcribe(audio_path)
+    return result["text"]
+```
+
+### 14.2.2 Real-time Audio Processing
+
+For real-time voice control, we need to process audio streams continuously:
+
+```python
+import pyaudio
+import numpy as np
+import threading
+import queue
+
+class AudioProcessor:
+    def __init__(self, callback_func):
+        self.callback_func = callback_func
+        self.audio_queue = queue.Queue()
+        self.is_recording = False
+
+        # Audio parameters
+        self.chunk_size = 1024
+        self.format = pyaudio.paInt16
+        self.channels = 1
+        self.rate = 16000  # Whisper works well with 16kHz
+
+        self.audio = pyaudio.PyAudio()
+
+    def start_recording(self):
+        """Start audio recording in a separate thread"""
+        self.is_recording = True
+        recording_thread = threading.Thread(target=self._record_audio)
+        recording_thread.start()
+
+    def _record_audio(self):
+        """Internal method to record audio"""
+        stream = self.audio.open(
+            format=self.format,
+            channels=self.channels,
+            rate=self.rate,
+            input=True,
+            frames_per_buffer=self.chunk_size
+        )
+
+        while self.is_recording:
+            data = stream.read(self.chunk_size)
+            self.audio_queue.put(data)
+
+        stream.stop_stream()
+        stream.close()
+
+    def stop_recording(self):
+        """Stop audio recording"""
+        self.is_recording = False
+        self.audio.terminate()
+```
+
+## 14.3 Natural Language Understanding
+
+### 14.3.1 Intent Recognition
+
+After converting speech to text, we need to understand the user's intent. This involves:
+
+1. **Intent Classification**: Determining the type of action requested
+2. **Entity Extraction**: Identifying objects, locations, and other parameters
+3. **Context Resolution**: Understanding references based on the current situation
+
+```python
+import spacy
+from transformers import pipeline
+
+class NaturalLanguageProcessor:
+    def __init__(self):
+        # Load spaCy model for linguistic processing
+        self.nlp = spacy.load("en_core_web_sm")
+
+        # Initialize intent classification pipeline
+        self.intent_classifier = pipeline(
+            "text-classification",
+            model="microsoft/DialoGPT-medium"  # Example model, replace with appropriate one
+        )
+
+    def process_command(self, text):
+        """Process natural language command"""
+        doc = self.nlp(text)
+
+        # Extract intents and entities
+        intent = self.classify_intent(text)
+        entities = self.extract_entities(doc)
+        context = self.resolve_context(doc, entities)
+
+        return {
+            'intent': intent,
+            'entities': entities,
+            'context': context,
+            'original_text': text
+        }
+
+    def classify_intent(self, text):
+        """Classify the intent of the command"""
+        # Example intents for robotic commands
+        if any(word in text.lower() for word in ['move', 'go', 'navigate', 'walk']):
+            return 'navigation'
+        elif any(word in text.lower() for word in ['pick', 'grasp', 'take', 'grab']):
+            return 'manipulation'
+        elif any(word in text.lower() for word in ['stop', 'halt', 'pause']):
+            return 'stop'
+        else:
+            return 'unknown'
+
+    def extract_entities(self, doc):
+        """Extract named entities from the command"""
+        entities = {
+            'objects': [],
+            'locations': [],
+            'colors': [],
+            'sizes': []
+        }
+
+        for ent in doc.ents:
+            if ent.label_ in ['OBJECT', 'PRODUCT']:  # Custom NER model would label these
+                entities['objects'].append(ent.text)
+            elif ent.label_ in ['GPE', 'LOC']:  # Geographic places, locations
+                entities['locations'].append(ent.text)
+
+        # Extract colors and sizes based on adjectives
+        for token in doc:
+            if token.pos_ == 'ADJ':  # Adjective
+                if token.lemma_ in ['red', 'blue', 'green', 'yellow', 'black', 'white']:
+                    entities['colors'].append(token.text)
+                elif token.lemma_ in ['big', 'small', 'large', 'tiny', 'huge']:
+                    entities['sizes'].append(token.text)
+
+        return entities
+```
+
+### 14.3.2 Semantic Parsing
+
+For more complex commands, we need to parse the semantic structure:
+
+```python
+class SemanticParser:
+    def __init__(self):
+        self.action_templates = {
+            'navigation': ['go to {location}', 'move to {location}', 'navigate to {location}'],
+            'manipulation': ['pick up {object}', 'grasp {object}', 'take {object}'],
+            'action_object': ['move {object} to {location}']
+        }
+
+    def parse_command(self, command, entities):
+        """Parse command into structured action"""
+        # Determine action type based on command structure
+        if 'location' in entities and any(obj for obj in entities['objects']):
+            # This is likely a move object action
+            return {
+                'action_type': 'move_object',
+                'object': entities['objects'][0] if entities['objects'] else None,
+                'destination': entities['locations'][0] if entities['locations'] else None
+            }
+        elif 'location' in entities:
+            # Navigation action
+            return {
+                'action_type': 'navigate',
+                'destination': entities['locations'][0] if entities['locations'] else None
+            }
+        elif 'object' in entities:
+            # Manipulation action
+            return {
+                'action_type': 'manipulate',
+                'object': entities['objects'][0] if entities['objects'] else None
+            }
+        else:
+            # Unknown action
+            return {
+                'action_type': 'unknown',
+                'command': command
+            }
+```
+
+## 14.4 Task Planning
+
+### 14.4.1 Hierarchical Task Networks (HTN)
+
+For complex commands, we need a planning system that can decompose high-level goals into executable actions:
+
+```python
+class TaskPlanner:
+    def __init__(self):
+        self.primitive_actions = {
+            'move_to': self._move_to,
+            'grasp_object': self._grasp_object,
+            'release_object': self._release_object,
+            'look_at': self._look_at
+        }
+
+        self.composite_tasks = {
+            'pick_and_place': self._pick_and_place,
+            'navigate_and_report': self._navigate_and_report
+        }
+
+    def plan_task(self, action_request):
+        """Plan a sequence of actions for the given request"""
+        if action_request['action_type'] in self.composite_tasks:
+            return self.composite_tasks[action_request['action_type']](action_request)
+        else:
+            # Return primitive action
+            return [action_request]
+
+    def _pick_and_place(self, request):
+        """Plan a pick and place task"""
+        object_to_pick = request.get('object')
+        destination = request.get('destination')
+
+        # Sequence of actions for pick and place
+        plan = [
+            {
+                'action': 'look_at',
+                'target': object_to_pick,
+                'description': f'Look at {object_to_pick}'
+            },
+            {
+                'action': 'move_to',
+                'target': f'near_{object_to_pick}',
+                'description': f'Move near {object_to_pick}'
+            },
+            {
+                'action': 'grasp_object',
+                'target': object_to_pick,
+                'description': f'Grasp {object_to_pick}'
+            },
+            {
+                'action': 'move_to',
+                'target': destination,
+                'description': f'Move to {destination}'
+            },
+            {
+                'action': 'release_object',
+                'target': object_to_pick,
+                'description': f'Release {object_to_pick}'
+            }
+        ]
+
+        return plan
+
+    def _navigate_and_report(self, request):
+        """Plan navigation with reporting"""
+        destination = request.get('destination')
+
+        plan = [
+            {
+                'action': 'move_to',
+                'target': destination,
+                'description': f'Navigate to {destination}'
+            },
+            {
+                'action': 'report_arrival',
+                'target': destination,
+                'description': f'Report arrival at {destination}'
+            }
+        ]
+
+        return plan
+```
+
+### 14.4.2 Integration with ROS 2
+
+The planner needs to interface with ROS 2 for action execution:
+
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+from geometry_msgs.msg import PoseStamped
+from action_msgs.msg import GoalStatus
+from rclpy.action import ActionClient
+
+class PlanningNode(Node):
+    def __init__(self):
+        super().__init__('planning_node')
+
+        # Initialize planner
+        self.task_planner = TaskPlanner()
+        self.nlp_processor = NaturalLanguageProcessor()
+        self.semantic_parser = SemanticParser()
+
+        # Publishers and subscribers
+        self.command_sub = self.create_subscription(
+            String,
+            'voice_command',
+            self.command_callback,
+            10
+        )
+
+        self.status_pub = self.create_publisher(
+            String,
+            'planning_status',
+            10
+        )
+
+        # Action clients for robot execution
+        self.nav_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        self.manip_client = ActionClient(self, GraspObject, 'grasp_object')
+
+        # Current plan and execution state
+        self.current_plan = []
+        self.current_step = 0
+        self.is_executing = False
+
+    def command_callback(self, msg):
+        """Process incoming voice command"""
+        command_text = msg.data
+        self.get_logger().info(f'Received command: {command_text}')
+
+        # Process the command through the pipeline
+        nlp_result = self.nlp_processor.process_command(command_text)
+        semantic_action = self.semantic_parser.parse_command(command_text, nlp_result['entities'])
+        plan = self.task_planner.plan_task(semantic_action)
+
+        # Execute the plan
+        self.execute_plan(plan)
+
+    def execute_plan(self, plan):
+        """Execute the planned sequence of actions"""
+        self.current_plan = plan
+        self.current_step = 0
+        self.is_executing = True
+
+        self.get_logger().info(f'Executing plan with {len(plan)} steps')
+
+        # Execute first step
+        if self.current_plan:
+            self.execute_current_step()
+
+    def execute_current_step(self):
+        """Execute the current step in the plan"""
+        if self.current_step >= len(self.current_plan):
+            # Plan completed
+            self.plan_completed()
+            return
+
+        step = self.current_plan[self.current_step]
+        action_type = step['action']
+
+        self.get_logger().info(f'Executing step {self.current_step + 1}: {step["description"]}')
+
+        # Execute the action based on type
+        if action_type == 'move_to':
+            self.execute_navigation(step['target'])
+        elif action_type == 'grasp_object':
+            self.execute_grasp(step['target'])
+        elif action_type == 'release_object':
+            self.execute_release(step['target'])
+        elif action_type == 'look_at':
+            self.execute_look(step['target'])
+        else:
+            self.get_logger().error(f'Unknown action type: {action_type}')
+            self.next_step()
+
+    def execute_navigation(self, target):
+        """Execute navigation action"""
+        # Create navigation goal
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose.header.frame_id = 'map'
+        goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
+
+        # Convert target to pose (simplified)
+        # In practice, this would involve more complex mapping
+        goal_msg.pose.pose.position.x = 1.0  # Example coordinates
+        goal_msg.pose.pose.position.y = 1.0
+        goal_msg.pose.pose.orientation.w = 1.0
+
+        # Send navigation goal
+        self.nav_client.wait_for_server()
+        future = self.nav_client.send_goal_async(goal_msg)
+        future.add_done_callback(self.navigation_done_callback)
+
+    def navigation_done_callback(self, future):
+        """Callback when navigation is completed"""
+        goal_handle = future.result()
+        if goal_handle.status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info('Navigation succeeded')
+        else:
+            self.get_logger().info('Navigation failed')
+
+        self.next_step()
+
+    def next_step(self):
+        """Move to the next step in the plan"""
+        self.current_step += 1
+        if self.current_step < len(self.current_plan):
+            # Execute next step
+            self.execute_current_step()
+        else:
+            # Plan completed
+            self.plan_completed()
+
+    def plan_completed(self):
+        """Handle plan completion"""
+        self.is_executing = False
+        self.get_logger().info('Plan completed successfully')
+
+        # Publish completion status
+        status_msg = String()
+        status_msg.data = 'plan_completed'
+        self.status_pub.publish(status_msg)
+
+def main(args=None):
+    rclpy.init(args=args)
+    planning_node = PlanningNode()
+
+    try:
+        rclpy.spin(planning_node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        planning_node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+## 14.5 Voice Command Executor
+
+### 14.5.1 ROS 2 Action Server
+
+To handle voice commands in a structured way, we can create an action server:
+
+```python
+import rclpy
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+from std_msgs.msg import String
+from action_tutorials_interfaces.action import ExecuteVoiceCommand  # Custom action definition
+
+class VoiceCommandExecutor(Node):
+    def __init__(self):
+        super().__init__('voice_command_executor')
+
+        # Initialize components
+        self.nlp_processor = NaturalLanguageProcessor()
+        self.semantic_parser = SemanticParser()
+        self.task_planner = TaskPlanner()
+
+        # Create action server
+        self._action_server = ActionServer(
+            self,
+            ExecuteVoiceCommand,
+            'execute_voice_command',
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup(),
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback
+        )
+
+        # Publishers for status updates
+        self.status_pub = self.create_publisher(String, 'voice_command_status', 10)
+
+        self.get_logger().info('Voice Command Executor ready')
+
+    def goal_callback(self, goal_request):
+        """Accept or reject goal requests"""
+        self.get_logger().info(f'Received voice command: {goal_request.command}')
+        return GoalResponse.ACCEPT
+
+    def cancel_callback(self, goal_handle):
+        """Accept or reject cancel requests"""
+        self.get_logger().info('Received cancel request')
+        return CancelResponse.ACCEPT
+
+    async def execute_callback(self, goal_handle):
+        """Execute the requested voice command"""
+        self.get_logger().info('Executing voice command...')
+
+        feedback_msg = ExecuteVoiceCommand.Feedback()
+        result = ExecuteVoiceCommand.Result()
+
+        try:
+            # Process the command through the pipeline
+            command_text = goal_handle.request.command
+
+            # NLP processing
+            nlp_result = self.nlp_processor.process_command(command_text)
+            feedback_msg.status = f'Processed NLP: intent={nlp_result["intent"]}'
+            goal_handle.publish_feedback(feedback_msg)
+
+            # Semantic parsing
+            semantic_action = self.semantic_parser.parse_command(command_text, nlp_result['entities'])
+            feedback_msg.status = f'Parsed semantics: {semantic_action["action_type"]}'
+            goal_handle.publish_feedback(feedback_msg)
+
+            # Planning
+            plan = self.task_planner.plan_task(semantic_action)
+            feedback_msg.status = f'Generated plan with {len(plan)} steps'
+            goal_handle.publish_feedback(feedback_msg)
+
+            # Execute plan
+            success = await self.execute_plan_async(plan, goal_handle, feedback_msg)
+
+            if success:
+                result.success = True
+                result.message = 'Command executed successfully'
+                goal_handle.succeed()
+            else:
+                result.success = False
+                result.message = 'Command execution failed'
+                goal_handle.abort()
+
+        except Exception as e:
+            self.get_logger().error(f'Error executing command: {e}')
+            result.success = False
+            result.message = f'Execution error: {str(e)}'
+            goal_handle.abort()
+
+        return result
+
+    async def execute_plan_async(self, plan, goal_handle, feedback_msg):
+        """Execute plan asynchronously with feedback"""
+        for i, step in enumerate(plan):
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                return False
+
+            feedback_msg.status = f'Executing step {i+1}/{len(plan)}: {step["description"]}'
+            goal_handle.publish_feedback(feedback_msg)
+
+            # Execute the step (simplified)
+            step_success = await self.execute_step_async(step)
+
+            if not step_success:
+                return False
+
+        return True
+
+    async def execute_step_async(self, step):
+        """Execute a single step of the plan"""
+        # This would involve calling appropriate ROS services/actions
+        # based on the step type
+        import asyncio
+        await asyncio.sleep(0.1)  # Simulate execution time
+        return True  # Simplified success
+
+def main(args=None):
+    rclpy.init(args=args)
+    executor = VoiceCommandExecutor()
+
+    try:
+        rclpy.spin(executor)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        executor.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+## 14.6 Safety and Error Handling
+
+### 14.6.1 Command Validation
+
+Before executing any command, validate it for safety:
+
+```python
+class CommandValidator:
+    def __init__(self):
+        # Define safe zones and forbidden actions
+        self.safe_zones = [
+            # Define safe navigation areas
+        ]
+
+        self.forbidden_actions = [
+            'destroy',
+            'break',
+            'harm',
+            'dangerous'
+        ]
+
+    def validate_command(self, command, entities, current_robot_state):
+        """Validate command for safety"""
+        command_lower = command.lower()
+
+        # Check for forbidden words
+        for forbidden in self.forbidden_actions:
+            if forbidden in command_lower:
+                return False, f'Command contains forbidden action: {forbidden}'
+
+        # Check navigation safety
+        if entities['locations']:
+            for location in entities['locations']:
+                if not self.is_safe_navigation_target(location, current_robot_state):
+                    return False, f'Navigation to {location} is unsafe'
+
+        # Check manipulation safety
+        if entities['objects']:
+            for obj in entities['objects']:
+                if not self.is_safe_to_manipulate(obj, current_robot_state):
+                    return False, f'Manipulation of {obj} is unsafe'
+
+        return True, 'Command is safe to execute'
+
+    def is_safe_navigation_target(self, location, robot_state):
+        """Check if navigation to location is safe"""
+        # Implementation would check for obstacles, drop-offs, etc.
+        return True  # Simplified
+
+    def is_safe_to_manipulate(self, obj, robot_state):
+        """Check if manipulation of object is safe"""
+        # Implementation would check object properties, robot state, etc.
+        return True  # Simplified
+```
+
+### 14.6.2 Error Recovery
+
+Implement error recovery mechanisms:
+
+```python
+class ErrorRecovery:
+    def __init__(self):
+        self.recovery_strategies = {
+            'navigation_failure': self.recover_navigation,
+            'grasp_failure': self.recover_grasp,
+            'perception_failure': self.recover_perception
+        }
+
+    def handle_error(self, error_type, context):
+        """Handle different types of errors"""
+        if error_type in self.recovery_strategies:
+            return self.recovery_strategies[error_type](context)
+        else:
+            return self.default_recovery(context)
+
+    def recover_navigation(self, context):
+        """Recovery strategy for navigation failures"""
+        # Try alternative path
+        # Report to user
+        # Ask for clarification
+        return 'alternative_path_attempted'
+
+    def recover_grasp(self, context):
+        """Recovery strategy for grasp failures"""
+        # Try different grasp approach
+        # Re-identify object
+        # Ask for help
+        return 'grasp_retry_attempted'
+
+    def default_recovery(self, context):
+        """Default recovery for unknown errors"""
+        # Stop robot
+        # Report error
+        # Wait for human intervention
+        return 'stopped_for_intervention'
+```
+
+## 14.7 Performance Optimization
+
+### 14.7.1 Real-time Processing
+
+For real-time voice control, optimize for latency:
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+class OptimizedVoiceProcessor:
+    def __init__(self):
+        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.loop = asyncio.get_event_loop()
+
+    async def process_voice_command(self, audio_data):
+        """Process voice command asynchronously"""
+        # Convert audio to text
+        text = await self.loop.run_in_executor(
+            self.executor,
+            self.speech_to_text,
+            audio_data
+        )
+
+        # Process NLP
+        nlp_result = await self.loop.run_in_executor(
+            self.executor,
+            self.nlp_process,
+            text
+        )
+
+        # Plan and execute
+        plan = await self.loop.run_in_executor(
+            self.executor,
+            self.plan_task,
+            nlp_result
+        )
+
+        return plan
+
+    def speech_to_text(self, audio_data):
+        """Convert audio to text (simplified)"""
+        # Implementation would use Whisper or similar
+        return "dummy text"
+
+    def nlp_process(self, text):
+        """Process text with NLP (simplified)"""
+        return {'intent': 'dummy', 'entities': {}}
+
+    def plan_task(self, nlp_result):
+        """Plan the task (simplified)"""
+        return [{'action': 'dummy', 'target': 'dummy'}]
+```
+
+## 14.8 Summary
+
+The voice → plan → action pipeline enables natural human-robot interaction by converting spoken commands into executable robot actions. This involves sophisticated processing at each stage: speech recognition to convert audio to text, natural language understanding to extract intent and entities, task planning to decompose high-level goals into executable actions, and safe execution with error recovery. The integration with ROS 2 provides a robust framework for implementing these systems on real robots.
+
+## Exercises
+
+1. Implement a complete voice-controlled navigation system using the components described in this chapter.
+2. Extend the natural language processor to handle more complex commands with multiple objects and locations.
+3. Design and implement a safety validation system for voice commands.
+4. Evaluate the performance of your voice-controlled system with various users and command types.
+
+## References
+
+- Radford, A., et al. (2022). "Robust Speech Recognition via Large-Scale Weak Supervision" (Whisper paper).
+- Kress-Gazit, H., et al. (2018). "Robotics and Automation for the Home".
+- Tellex, S., et al. (2011). "Understanding Natural Language Commands for Robotic Navigation".

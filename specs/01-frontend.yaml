@@ -1,0 +1,31 @@
+# Spec: Physical AI & Humanoid Robotics Textbook - Frontend
+# Docusaurus frontend with chatbot, personalization, translation
+
+spec:
+  id: "01-frontend"
+  name: "Frontend Implementation"
+  description: "Docusaurus v3 frontend with interactive features, chatbot, and multilingual support"
+  version: "1.0.0"
+  depends_on: ["00-constitution"]
+  components:
+    - "Docusaurus v3 with MDX"
+    - "Interactive code blocks (Thebe)"
+    - "Chatbot component (ChatKit)"
+    - "Personalization button"
+    - "Translation toggle (Urdu/Roman Urdu)"
+    - "Dark mode and responsive design"
+    - "Progress tracking"
+    - "Quiz components"
+    - "Vision diagram explainer"
+
+  files:
+    - "frontend/docusaurus.config.js"
+    - "frontend/src/components/Chatbot.tsx"
+    - "frontend/src/components/PersonalizeButton.tsx"
+    - "frontend/src/components/TranslateToggle.tsx"
+    - "frontend/src/theme/"
+    - "frontend/docs/ (chapters)"
+
+implementation_status: "in_progress"
+created_date: "2025-12-10"
+last_updated: "2025-12-10"
