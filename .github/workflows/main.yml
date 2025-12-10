@@ -1,38 +1,40 @@
-name: Deploy Docusaurus site to GitHub Pages
+name: Deploy Physical AI Textbook to GitHub Pages
 
-on: # Trigger the workflow on push or pull request events for the main branch
+on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - main  # triggers deployment on pushes to main branch
 
 jobs:
-  deploy:
-    name: Deploy to GitHub Pages
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
+      # 1. Checkout the repository
       - uses: actions/checkout@v3
 
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: npm
+          node-version: '18'  # matches your package.json engines
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Perform Plagiarism Check
-        run: echo "Running placeholder plagiarism check (CopyLeaks + GPTZero integration here)" # Replace with actual plagiarism check action/script
+      # 4. Fix Docusaurus permissions
+      - name: Make Docusaurus executable
+        run: chmod +x ./node_modules/.bin/docusaurus
 
-      - name: Build Docusaurus website
-        run: npm run build
+      # 5. Build the site
+      - name: Build Docusaurus
+        run: npx --yes docusaurus build
 
+      # 6. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
+          # Use either the default token (GITHUB_TOKEN) or your personal token (PAT_GITHUB)
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
-          # CNAME: example.com # Uncomment this line and replace example.com with your custom domain
