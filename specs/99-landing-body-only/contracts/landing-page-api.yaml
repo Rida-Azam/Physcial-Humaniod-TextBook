@@ -1,0 +1,203 @@
+# API Contracts for Landing Page Components
+
+## Landing Page Content API
+
+### GET /api/landing-page/config
+**Description**: Retrieve landing page configuration including theme and preserved sections
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "id": "string",
+  "theme": "string",
+  "accent_color": "string",
+  "preserve_header": "boolean",
+  "preserve_hero": "boolean",
+  "preserve_footer": "boolean",
+  "is_active": "boolean",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+
+### GET /api/landing-page/sections
+**Description**: Retrieve all active landing page sections in display order
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "sections": [
+    {
+      "id": "string",
+      "section_type": "enum",
+      "title": "string",
+      "content": "string",
+      "order": "integer",
+      "is_active": "boolean",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+
+### GET /api/landing-page/section/{section_type}
+**Description**: Retrieve specific section by type
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Path Parameter: section_type (supportive_hero, social_proof, tools_grid, feature_cards, final_cta)
+
+**Response**:
+```
+{
+  "id": "string",
+  "section_type": "enum",
+  "title": "string",
+  "content": "string",
+  "order": "integer",
+  "is_active": "boolean",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+
+## Supportive Hero API
+
+### GET /api/landing-page/supportive-hero
+**Description**: Retrieve supportive hero content
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "id": "string",
+  "image_src": "string",
+  "image_alt": "string",
+  "image_width": "integer",
+  "title": "string",
+  "description": "string",
+  "highlights": ["string"],
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+
+## Social Proof API
+
+### GET /api/landing-page/social-proof/logos
+**Description**: Retrieve all active social proof logos
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "logos": [
+    {
+      "id": "string",
+      "organization_name": "string",
+      "logo_src": "string",
+      "display_order": "integer",
+      "is_active": "boolean",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+
+## Tools Grid API
+
+### GET /api/landing-page/tools
+**Description**: Retrieve all active tools for the tools grid
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "tools": [
+    {
+      "id": "string",
+      "name": "string",
+      "icon": "string",
+      "display_order": "integer",
+      "is_active": "boolean",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+
+## Feature Cards API
+
+### GET /api/landing-page/feature-cards
+**Description**: Retrieve all active feature cards
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "cards": [
+    {
+      "id": "string",
+      "title": "string",
+      "description": "string",
+      "icon": "string",
+      "display_order": "integer",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+
+## CTA API
+
+### GET /api/landing-page/cta
+**Description**: Retrieve the final CTA configuration
+
+**Request**:
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response**:
+```
+{
+  "id": "string",
+  "text": "string",
+  "link_url": "string",
+  "button_type": "enum",
+  "tracking_id": "string",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```

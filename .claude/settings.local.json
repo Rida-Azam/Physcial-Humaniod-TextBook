@@ -9,7 +9,14 @@
       "Bash(git --version)",
       "Bash(git rev-parse --is-inside-work-tree)",
       "Bash(git rev-parse --abbrev-ref HEAD)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git rev-parse --git-dir)",
+      "Bash(npm run start)",
+      "Bash(del staticimglogos*.svg)",
+      "Bash(powershell Remove-Item \"static/img/logos/*.svg\")",
+      "Bash(dir \"static\\img\\logos\" /s)",
+      "Bash(npx docusaurus start --port 3001)",
+      "Bash(npx docusaurus start --port 4000)"
     ],
     "deny": [],
     "ask": []

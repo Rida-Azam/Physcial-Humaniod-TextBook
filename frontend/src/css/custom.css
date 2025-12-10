@@ -6,27 +6,32 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-primary: #00D4FF; /* Cyberpunk accent color */
+  --ifm-color-primary-dark: #00b8e6;
+  --ifm-color-primary-darker: #00a8d4;
+  --ifm-color-primary-darkest: #008cb2;
+  --ifm-color-primary-light: #1ad9ff;
+  --ifm-color-primary-lighter: #33e0ff;
+  --ifm-color-primary-lightest: #66eaff;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+  --ifm-color-primary: #00D4FF; /* Cyberpunk accent color */
+  --ifm-color-primary-dark: #00b8e6;
+  --ifm-color-primary-darker: #00a8d4;
+  --ifm-color-primary-darkest: #008cb2;
+  --ifm-color-primary-light: #1ad9ff;
+  --ifm-color-primary-lighter: #33e0ff;
+  --ifm-color-primary-lightest: #66eaff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Dark theme background colors */
+  --ifm-background-color: #0a0a0a;
+  --ifm-background-surface-color: #0f0f0f;
+  --ifm-footer-background-color: #0a0a0a;
+  --ifm-navbar-background-color: #0a0a0a;
 }
 
 /* Custom styles for the textbook */
@@ -74,6 +79,230 @@
   background-color: #f9f9f9;
 }
 
+/* Landing page specific styles for cyberpunk theme */
+.hero--primary {
+  background: linear-gradient(135deg, #0A0A0A 0%, #001122 100%);
+  color: white;
+  padding: 4rem 0;
+}
+
+.supportiveSection {
+  background-color: #0a0a0a;
+  padding: 3rem 0;
+  color: white;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+}
+
+.supportiveSection h2 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.supportiveSection p {
+  color: #e0e0e0;
+  margin-bottom: 1.5rem;
+}
+
+.supportiveSection ul {
+  color: #e0e0e0;
+  padding-left: 1.5rem;
+}
+
+.supportiveSection ul li {
+  margin-bottom: 0.5rem;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.supportiveSection ul li::before {
+  content: "•";
+  color: #00D4FF;
+  position: absolute;
+  left: 0;
+}
+
+.heroImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+}
+
+.socialProofSection {
+  background-color: #0f0f0f;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.socialProofSection h2 {
+  color: #00D4FF;
+  margin-bottom: 2rem;
+}
+
+.logosContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.logoItem img {
+  max-height: 60px;
+  filter: grayscale(100%) brightness(0.8);
+  transition: all 0.3s ease;
+}
+
+.logoItem img:hover {
+  filter: grayscale(0%) brightness(1);
+  transform: scale(1.1);
+}
+
+.toolsSection {
+  background-color: #0a0a0a;
+  padding: 3rem 0;
+  color: white;
+}
+
+.toolsSection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.toolsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.toolItem {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #2a2a2a;
+}
+
+.toolItem:hover {
+  border-color: #00D4FF;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.toolIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.toolName {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.featureCardsSection {
+  background-color: #0f0f0f;
+  padding: 3rem 0;
+  color: white;
+}
+
+.featureCardsSection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.featureCard {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  height: 100%;
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  border-color: #00D4FF;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  transform: translateY(-5px);
+}
+
+.cardIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.featureCard h3 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.featureCard p {
+  color: #e0e0e0;
+}
+
+.finalCtaSection {
+  background: linear-gradient(135deg, #001122 0%, #0A0A0A 100%);
+  padding: 4rem 0;
+  text-align: center;
+  color: white;
+}
+
+.finalCtaSection h2 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.finalCtaSection p {
+  color: #e0e0e0;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Cyberpunk button styles */
+.button--primary {
+  background-color: #00D4FF !important;
+  border-color: #00D4FF !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+
+.button--primary:hover {
+  background-color: #1ad9ff !important;
+  border-color: #1ad9ff !important;
+  color: #000 !important;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.button--outline {
+  border: 2px solid #00D4FF !important;
+  color: #00D4FF !important;
+  font-weight: bold;
+}
+
+.button--outline:hover {
+  background-color: #00D4FF !important;
+  color: #000 !important;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+/* Section title styling */
+.sectionTitle {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
 /* Responsive design improvements */
 @media (max-width: 768px) {
   .chatbot-container {
@@ -82,5 +311,55 @@
 
   .chatbot-messages {
     max-height: 200px;
+  }
+
+  .supportiveSection {
+    padding: 2rem 0;
+    min-height: auto;
+  }
+
+  .logosContainer {
+    gap: 1rem;
+  }
+
+  .logoItem img {
+    max-height: 40px;
+  }
+
+  .toolsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .hero--primary {
+    padding: 2rem 0;
+  }
+
+  .finalCtaSection {
+    padding: 2rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .buttons .button {
+    width: 100%;
+  }
+
+  .logosContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logoItem img {
+    max-height: 30px;
   }
 }

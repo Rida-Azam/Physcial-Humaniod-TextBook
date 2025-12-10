@@ -1,70 +1,15 @@
-import React, { useState, useEffect } from 'react';
-
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-}
+import React, { useState } from 'react';
+import { useChat } from '../context/ChatContext';
 
 const Chatbot: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! I\'m your AI assistant for the Physical AI & Humanoid Robotics textbook. How can I help you today?',
-      role: 'assistant',
-      timestamp: new Date()
-    }
-  ]);
+  const { messages, sendMessage: sendContextMessage, isLoading } = useChat();
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!inputValue.trim() || isLoading) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      role: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    sendContextMessage(inputValue);
     setInputValue('');
-    setIsLoading(true);
-
-    try {
-      // In a real implementation, this would call the backend API
-      // const response = await fetch('/api/query/query', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ query: inputValue, user_id: 'temp-user' })
-      // });
-      // const data = await response.json();
-
-      // For now, simulate a response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `I received your question: "${inputValue}". In a real implementation, I would search the textbook content and provide an answer based on the Physical AI & Humanoid Robotics material.`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Sorry, I encountered an error processing your request.',
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -94,8 +39,8 @@ const Chatbot: React.FC = () => {
                 display: 'inline-block',
                 padding: '8px 12px',
                 borderRadius: '8px',
-                backgroundColor: message.role === 'user' ? '#007cba' : '#f0f0f0',
-                color: message.role === 'user' ? 'white' : 'black',
+                backgroundColor: message.role === 'user' ? '#00D4FF' : '#f0f0f0',
+                color: message.role === 'user' ? '#000' : '#000',
                 maxWidth: '80%'
               }}
             >
@@ -140,8 +85,8 @@ const Chatbot: React.FC = () => {
           style={{
             marginTop: '8px',
             padding: '8px 16px',
-            backgroundColor: '#007cba',
-            color: 'white',
+            backgroundColor: '#00D4FF',
+            color: '#000',
             border: 'none',
             borderRadius: '4px',
             cursor: isLoading || !inputValue.trim() ? 'not-allowed' : 'pointer'

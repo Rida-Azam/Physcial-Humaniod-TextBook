@@ -1,4 +1,4 @@
-/* <!-- Generated via /sp.implement | Physical AI Textbook --> */
+/* <!-- Generated via /sp.implement | Physical AI Textbook with Enhanced Landing Page --> */
 /**
  * CSS files with the .module.css suffix will be treated as CSS modules
  * and scoped locally.
@@ -9,7 +9,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: linear-gradient(135deg, #0A0A0A 0%, #001122 100%) !important;
   color: white;
 }
 
@@ -50,24 +50,27 @@
   align-items: center;
   justify-content: center;
   margin-top: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .buttons a {
-  background: #0055FF;
-  color: white;
-  border: none;
+  background: #00D4FF !important;
+  color: #000 !important;
+  border: 2px solid #00D4FF !important;
   padding: 1rem 2rem;
   font-size: 1.2rem;
   border-radius: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 85, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+  text-decoration: none;
 }
 
 .buttons a:hover {
-  background: #0044cc;
+  background: #1ad9ff !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 85, 255, 0.6);
-  color: white;
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6) !important;
+  color: #000 !important;
 }
 
 .modules {
@@ -78,7 +81,7 @@
 .sectionTitle {
   text-align: center;
   margin-bottom: 3rem;
-  color: #2c3e50;
+  color: #00D4FF;
   font-size: 2.5rem;
 }
 
@@ -100,23 +103,25 @@
 
 .moduleCard:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 85, 255, 0.2);
-  border-color: #0055FF;
+  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.2);
+  border-color: #00D4FF;
 }
 
 .moduleCard h3 {
-  color: #0055FF;
+  color: #00D4FF;
   margin-top: 0;
 }
 
 .moduleCard .button {
-  background: #0055FF;
+  background: #00D4FF;
   border: none;
   width: 100%;
+  color: #000;
 }
 
 .moduleCard .button:hover {
-  background: #0044cc;
+  background: #1ad9ff;
+  color: #000;
 }
 
 .hero__title {
@@ -134,4 +139,483 @@
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* New sections for enhanced landing page */
+.supportiveSection {
+  background-color: #0a0a0a;
+  padding: 3rem 0;
+  color: white;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+}
+
+.supportiveSection h2 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.supportiveSection p {
+  color: #e0e0e0;
+  margin-bottom: 1.5rem;
+}
+
+.techLogosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+  justify-items: center;
+}
+
+.techLogoItem {
+  text-align: center;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.techLogoItem:hover {
+  transform: translateY(-5px);
+}
+
+.techLogo {
+  margin: 0 auto 1rem auto;
+  transition: all 0.3s ease;
+}
+
+.logoCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A0A0A 0%, #001122 100%);
+  border: 2px solid #00D4FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.logoCircle:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+}
+
+.logoSymbol {
+  color: #00D4FF;
+  font-weight: bold;
+  font-size: 0.8rem;
+  font-family: monospace;
+  text-align: center;
+  line-height: 1;
+}
+
+.logoImage {
+  width: 60px;
+  height: 60px;
+  transition: all 0.3s ease;
+  filter: brightness(0.8);
+}
+
+.logoImage:hover {
+  filter: brightness(1.2);
+  transform: scale(1.1);
+}
+
+.techLogoItem h3 {
+  color: #00D4FF;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.techLogoItem p {
+  color: #c0c0c0;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.socialProofSection {
+  background-color: #0f0f0f;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.socialProofSection h2 {
+  color: #00D4FF;
+  margin-bottom: 2rem;
+}
+
+.logosContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.logoItem img {
+  max-height: 60px;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.logoItem img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.toolsSection {
+  background-color: #0a0a0a;
+  padding: 3rem 0;
+  color: white;
+}
+
+.toolsSection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.toolsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.toolItem {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #2a2a2a;
+}
+
+.toolItem:hover {
+  border-color: #00D4FF;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.toolIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.toolName {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.featureCardsSection {
+  background-color: #0f0f0f;
+  padding: 3rem 0;
+  color: white;
+}
+
+.featureCardsSection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.featureCard {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  height: 100%;
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  border-color: #00D4FF;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  transform: translateY(-5px);
+}
+
+.cardIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.featureCard h3 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.featureCard p {
+  color: #e0e0e0;
+}
+
+.finalCtaSection {
+  background: linear-gradient(135deg, #001122 0%, #0A0A0A 100%);
+  padding: 4rem 0;
+  text-align: center;
+  color: white;
+}
+
+.finalCtaSection h2 {
+  color: #00D4FF;
+  margin-bottom: 1rem;
+}
+
+.finalCtaSection p {
+  color: #e0e0e0;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Summary Section */
+.summarySection {
+  background-color: #0a0a0a;
+  padding: 3rem 0;
+  color: white;
+}
+
+.summarySection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.modulesRow {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.moduleCard {
+  flex: 1;
+  min-width: 250px;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.moduleCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  border-color: #00D4FF;
+}
+
+.moduleCard h3 {
+  color: #00D4FF;
+  margin: 0 0 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.2rem;
+}
+
+.moduleCard .card__body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.moduleCard p {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+.moduleCard .card__footer {
+  margin-top: auto;
+  padding: 1rem;
+}
+
+.moduleCard .button {
+  background: #00D4FF;
+  border: none;
+  width: 100%;
+  color: #000;
+  padding: 0.75rem;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.moduleCard .button:hover {
+  background: #1ad9ff;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+/* Tech Stack Summary */
+.techStackSummary {
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: #111;
+  border-radius: 8px;
+  border: 1px solid #222;
+}
+
+.techStackTitle {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.techStackText {
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+.techCategories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.techCategory h4 {
+  color: #00D4FF;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.techCategory p {
+  color: #c0c0c0;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Testimonials Section */
+.testimonialsSection {
+  background-color: #0f0f0f;
+  padding: 3rem 0;
+  color: white;
+}
+
+.testimonialsSection h2 {
+  color: #00D4FF;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testimonialCard {
+  background-color: #1a1a1a;
+  padding: 2rem;
+  border-radius: 8px;
+  position: relative;
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s ease;
+}
+
+.testimonialCard:hover {
+  border-color: #00D4FF;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  transform: translateY(-5px);
+}
+
+.quoteIcon {
+  font-size: 3rem;
+  color: #00D4FF;
+  opacity: 0.3;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  font-family: serif;
+}
+
+.testimonialText {
+  color: #e0e0e0;
+  font-style: italic;
+  margin: 1.5rem 0 1rem 0;
+  position: relative;
+  z-index: 1;
+  line-height: 1.6;
+}
+
+.testimonialAuthor h4 {
+  color: #00D4FF;
+  margin: 0 0 0.25rem 0;
+}
+
+.testimonialAuthor .testimonialRole {
+  color: #a0a0a0;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Button styles for enhanced landing page */
+.button--outline {
+  border: 2px solid #00D4FF !important;
+  background: transparent !important;
+  color: #00D4FF !important;
+  font-weight: bold;
+}
+
+.button--outline:hover {
+  background-color: #00D4FF !important;
+  color: #000 !important;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5) !important;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .supportiveSection {
+    padding: 2rem 0;
+    min-height: auto;
+  }
+
+  .logosContainer {
+    gap: 1rem;
+  }
+
+  .logoItem img {
+    max-height: 40px;
+  }
+
+  .toolsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .buttons a {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .summaryImage {
+    max-width: 100%;
+  }
 }

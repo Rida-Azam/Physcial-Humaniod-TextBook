@@ -1,0 +1,59 @@
+/* CSS Module for the homepage */
+
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.supportiveSection {
+  padding: 4rem 0;
+  background-color: #0a0a0a;
+}
+
+@media screen and (max-width: 996px) {
+  .supportiveSection {
+    padding: 2rem 0;
+  }
+}
+
+.sectionTitle {
+  margin-bottom: 2rem;
+  color: #00D4FF;
+  text-align: center;
+}
+
+.socialProofSection {
+  padding: 4rem 0;
+  background-color: #0f0f0f;
+}
+
+.toolsSection {
+  padding: 4rem 0;
+  background-color: #0a0a0a;
+}
+
+.featureCardsSection {
+  padding: 4rem 0;
+  background-color: #0f0f0f;
+}
+
+.finalCtaSection {
+  padding: 4rem 0;
+  text-align: center;
+}
